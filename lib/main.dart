@@ -622,7 +622,6 @@ class _SearchState extends State<Search> {
                           searchedList.add(media);
                         }
                       }
-                      print("2 $searchedList");
                     });
                 });
 
