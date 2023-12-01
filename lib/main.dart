@@ -390,11 +390,11 @@ class _RatingsScreenState extends State<RatingsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.star, color: Colors.yellow, size: 40,),
-                Icon(Icons.star, color: Colors.yellow, size: 40,),
-                Icon(Icons.star, color: Colors.yellow, size: 40,),
-                Icon(Icons.star, color: Colors.yellow, size: 40,),
-                Icon(Icons.star, color: Colors.yellow, size: 40,),
+                Icon(Icons.star, color: Colors.orange, size: 40,),
+                Icon(Icons.star, color: Colors.orange, size: 40,),
+                Icon(Icons.star, color: Colors.orange, size: 40,),
+                Icon(Icons.star, color: Colors.orange, size: 40,),
+                Icon(Icons.star, color: Colors.orange, size: 40,),
 
               ],
 
@@ -483,7 +483,9 @@ class _ListsState extends State<Lists> {
           child: ListTile(title: Text(element.name, style: TextStyle(fontWeight: FontWeight.bold),), subtitle: Text("${element.medias.length} Medias",), onTap: (){
             selectedIndex = lists.indexOf(element);
             Navigator.of(context).pushNamed('singleList');
-          },
+          }, trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){
+            //HERE, ADD CODE TO DELETE THE LIST!!!!
+          },),
           ),
         ),
       );
@@ -501,10 +503,10 @@ class _ListsState extends State<Lists> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Column(children: generatedLists()),
             ElevatedButton(onPressed: (){
               Navigator.of(context).pushNamed("listCreate");
             }, child: Text("Add List")),
-            Column(children: generatedLists())
           ],),
       )
     );
