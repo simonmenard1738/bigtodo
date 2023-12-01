@@ -344,17 +344,17 @@ class _EditProfileState extends State<EditProfile> {
 
 
 class RatingsScreen extends StatefulWidget {
-  const RatingsScreen({super.key});
+  Media selected;
+  RatingsScreen(this.selected, {super.key});
 
   @override
-  State<RatingsScreen> createState() => _RatingsScreenState();
+  State<RatingsScreen> createState() => _RatingsScreenState(selected);
 }
 
 class _RatingsScreenState extends State<RatingsScreen> {
-  @override
-  String img = "https://cdn.akamai.steamstatic.com/steam/apps/2114740/capsule_616x353.jpg?t=1694618661";
-  String media_name = "Blasphemous 2";
-  int num_reviews = 206;
+  Media selected;
+  _RatingsScreenState(this.selected);
+
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
@@ -374,14 +374,12 @@ class _RatingsScreenState extends State<RatingsScreen> {
                   maxHeight: 200,
                   maxWidth: 350
               ),
-              child: Image.network(
-                "$img",
-              ),
+              child: Image.network(selected.poster),
             ),
 
             SizedBox(height: 35,),
 
-            Text("$media_name",
+            Text(selected.title,
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 30
@@ -404,7 +402,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
 
             SizedBox(height: 15,),
 
-            Text("Taken from $num_reviews reviews", style: TextStyle(
+            Text("Taken from PLACEHOLDER reviews", style: TextStyle(
                 color: Colors.white
             ),),
 
@@ -529,7 +527,7 @@ class _SingleListState extends State<SingleList> {
           margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
           child: ListTile(onTap: (){
             Navigator.push(context, MaterialPageRoute(
-                builder: (context)=>RatingsScreen()
+                builder: (context)=>RatingsScreen(element)
             ));
           },title: Text(element.title, style: TextStyle(fontWeight: FontWeight.bold),), subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -622,6 +620,7 @@ class _SearchState extends State<Search> {
                           searchedList.add(media);
                         }
                       }
+                      print("2 $searchedList");
                     });
                 });
 
@@ -633,7 +632,7 @@ class _SearchState extends State<Search> {
         Expanded(child: Container(
             padding: EdgeInsets.fromLTRB(0, 25, 0, 0),
             width: 350,
-            child: SingleChildScrollView(child: ListView.builder(itemCount: searchedList.length, shrinkWrap: true, itemBuilder: (context, index){
+            child: ListView.builder(itemCount: searchedList.length, shrinkWrap: true, itemBuilder: (context, index){
               return Card(
                 margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
                 child: ListTile(title: Text(searchedList[index].title, style: TextStyle(fontWeight: FontWeight.bold),), subtitle: Column(
@@ -645,10 +644,13 @@ class _SearchState extends State<Search> {
                 ), onTap: (){
                   showModalBottomSheet(context: context, builder: (BuildContext context){
                     return Container(
-                      padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
-                      height: 200,
-                      child: Column(
-                        children: listButtons(searchedList[index], context),
+                      padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                      height: 500,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(30),
+                        child: Column(
+                          children: listButtons(searchedList[index], context),
+                        ),
                       ),
                     );
 
@@ -656,7 +658,7 @@ class _SearchState extends State<Search> {
                 },
                 ),
               );})
-            )
+
         ), flex: 1,)
 
       ],
@@ -666,6 +668,11 @@ class _SearchState extends State<Search> {
   List<Widget> listButtons(Media selected, BuildContext context){
     print("In List: $searchedList");
     List<Widget> globalLists = [];
+    globalLists.add(Text("${selected.title}: ${selected.mediaType}, ${selected.year}", style: TextStyle(fontWeight: FontWeight.bold)));
+    print(selected.poster);
+    if(selected.poster!="N/A"){
+      globalLists.add(Image.network(selected.poster, width: 200));
+    }
     for (var element in lists) {
       globalLists.add(
           ElevatedButton(onPressed: (){
@@ -690,15 +697,19 @@ class ListCreate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          TextField(decoration: InputDecoration(hintText: "Name"), controller: listController,),
-          ElevatedButton(onPressed: (){
-            lists.add(UserList(listController.text));
-            Navigator.of(context).pushNamed("homePage");
-          }, child: Text("add list"))
-        ],
-      ),
+      body: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(decoration: InputDecoration(hintText: "Name"), controller: listController,),
+            ElevatedButton(onPressed: (){
+              lists.add(UserList(listController.text));
+              Navigator.of(context).pushNamed("homePage");
+            }, child: Text("add list"))
+          ],
+        ),
+      )
     );
   }
 }
