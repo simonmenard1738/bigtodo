@@ -3,6 +3,7 @@ import 'media.dart';
 
 class ApiService{
   Future <List<Media>?> search(String searchString) async{
+    //ADD FILTERING FOR EACH TYPE OF MEDIA
     try{
       List<Media> _medias = [];
       Uri omdbUrl = Uri.parse("https://www.omdbapi.com/?s=${searchString}&apikey=3ccd1614");

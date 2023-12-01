@@ -3,9 +3,14 @@ import 'dart:convert';
 
 List<Media> omdbFromJson(String str) {
   print('IN OMDB METHOD');
-  return List<Media>.from(json.decode(str)['Search'].map((x) {
-    return Media.fromJson(x);
-  }));
+  if(json.decode(str)['Search']!=null){
+    return List<Media>.from(json.decode(str)['Search'].map((x) {
+      return Media.fromJson(x);
+    }));
+  }else{
+    return [];
+  }
+
 }
 
 List<Media> albumsFromJson(String str) {
@@ -18,10 +23,15 @@ List<Media> albumsFromJson(String str) {
 
 List<Media> booksFromJson(String str) {
   print("IN BOOKS METHOD");
-  print(json.decode(str)['items']);
-  return List<Media>.from(json.decode(str)['items'].map((x) {
-    return Media.bookFromJson(x);
-  }));
+  if(json.decode(str)['items']!=null){
+    print(json.decode(str)['items']);
+    return List<Media>.from(json.decode(str)['items'].map((x) {
+      return Media.bookFromJson(x);
+    }));
+  }else{
+    return [];
+  }
+
 }
 
 
