@@ -17,8 +17,9 @@ List<Media> albumsFromJson(String str) {
   print("IN ALBUMS METHOD");
   print(json.decode(str)['results']['albummatches']['album']);
   return List<Media>.from(json.decode(str)['results']['albummatches']['album'].map((x) {
+    print("TEST: ${x["image"][2]['#text']}");
     return Media.albumFromJson(x);
-  }));
+  })).where((element) => element.poster!=null&&element.poster.isNotEmpty).toList();
 }
 
 List<Media> booksFromJson(String str) {
@@ -53,15 +54,15 @@ class Media{
   }
 
   factory Media.fromJson(Map<String, dynamic> json) => Media(
-    json['Title'], json['Year'], json['Type'], json['Poster']
+    json['Title']??"", json['Year']??"", json['Type']??"", json['Poster']??""
   );
 
   factory Media.albumFromJson(Map<String, dynamic> json) => Media(
-    json['name'], json['artist'], "Album", json["image"][1]['#text']
+    json['name']??"", json['artist']??"", "Album", json["image"][2]['#text']??""
   );
 
   factory Media.bookFromJson(Map<String, dynamic> json) => Media(
-      json['volumeInfo']['title'], json['volumeInfo']['publishedDate'].split("-")[0], "Book", json['volumeInfo']['imageLinks']['smallThumbnail']
+      json['volumeInfo']['title']??"", json['volumeInfo']['publishedDate'].split("-")[0]??"", "Book", json['volumeInfo']['imageLinks']!=null ? json['volumeInfo']['imageLinks']['smallThumbnail'] : ""
   );
 
   Map<String, dynamic> toJson() => {

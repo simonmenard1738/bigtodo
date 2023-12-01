@@ -496,15 +496,17 @@ class _ListsState extends State<Lists> {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-        ElevatedButton(onPressed: (){
-          Navigator.of(context).pushNamed("listCreate");
-        }, child: Text("Add List")),
-        Column(children: generatedLists())
-      ],),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ElevatedButton(onPressed: (){
+              Navigator.of(context).pushNamed("listCreate");
+            }, child: Text("Add List")),
+            Column(children: generatedLists())
+          ],),
+      )
     );
   }
 }
@@ -671,7 +673,8 @@ class _SearchState extends State<Search> {
     globalLists.add(Text("${selected.title}: ${selected.mediaType}, ${selected.year}", style: TextStyle(fontWeight: FontWeight.bold)));
     print(selected.poster);
     if(selected.poster!="N/A"){
-      globalLists.add(Image.network(selected.poster, width: 200));
+      if(selected.poster.isNotEmpty)
+        globalLists.add(Image.network(selected.poster, width: 200));
     }
     for (var element in lists) {
       globalLists.add(
@@ -682,7 +685,7 @@ class _SearchState extends State<Search> {
               });
             }
             Navigator.pop(context);
-          }, child: Text(element.name))
+          }, child: Text(element.name, style: TextStyle(color: Colors.black54),), style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.orange)),)
       );
     }
     return globalLists;
@@ -706,7 +709,7 @@ class ListCreate extends StatelessWidget {
             ElevatedButton(onPressed: (){
               lists.add(UserList(listController.text));
               Navigator.of(context).pushNamed("homePage");
-            }, child: Text("add list"))
+            }, child: Text("Add list"))
           ],
         ),
       )
