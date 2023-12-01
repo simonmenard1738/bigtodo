@@ -16,6 +16,14 @@ List<Media> albumsFromJson(String str) {
   }));
 }
 
+List<Media> booksFromJson(String str) {
+  print("IN BOOKS METHOD");
+  print(json.decode(str)['items']);
+  return List<Media>.from(json.decode(str)['items'].map((x) {
+    return Media.bookFromJson(x);
+  }));
+}
+
 
 
 
@@ -40,6 +48,10 @@ class Media{
 
   factory Media.albumFromJson(Map<String, dynamic> json) => Media(
     json['name'], json['artist'], "Album", json["image"][1]['#text']
+  );
+
+  factory Media.bookFromJson(Map<String, dynamic> json) => Media(
+      json['volumeInfo']['title'], json['volumeInfo']['publishedDate'].split("-")[0], "Book", json['volumeInfo']['imageLinks']['smallThumbnail']
   );
 
   Map<String, dynamic> toJson() => {
