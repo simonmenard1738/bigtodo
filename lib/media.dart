@@ -62,7 +62,7 @@ class Media{
   );
 
   factory Media.bookFromJson(Map<String, dynamic> json) => Media(
-      json['volumeInfo']['title']??"", json['volumeInfo']['publishedDate'].split("-")[0]??"", "Book", json['volumeInfo']['imageLinks']!=null ? json['volumeInfo']['imageLinks']['smallThumbnail'] : ""
+      json['volumeInfo']['title']??"", json['volumeInfo']['publishedDate']!=null ? json['volumeInfo']['publishedDate'].split("-")[0] : "", "Book", json['volumeInfo']['imageLinks']!=null ? json['volumeInfo']['imageLinks']['smallThumbnail'] : ""
   );
 
   Map<String, dynamic> toJson() => {
