@@ -605,17 +605,13 @@ class _SearchState extends State<Search> {
       children: [
         SizedBox(height: 50,),
         Container(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 300,
-                child: TextField(controller: searchController, decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), fillColor: Colors.white, hintText: "Find anything!", filled: true, hintStyle: TextStyle(color: Colors.grey)), style: TextStyle(color: Colors.black),),
-              ),
-              IconButton(onPressed: () async{
-                String search = searchController.text;
-                searchedList = [];
-                service.search(search).then((value) {
+          child:
+              ListTile(
+                title: TextField(controller: searchController, decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), fillColor: Colors.white, hintText: "Find anything!", filled: true, hintStyle: TextStyle(color: Colors.grey)), style: TextStyle(color: Colors.black)),
+                trailing: IconButton(onPressed: () async{
+                  String search = searchController.text;
+                  searchedList = [];
+                  service.search(search).then((value) {
 
                     setState(() {
                       print("1 $searchedList");
@@ -626,16 +622,17 @@ class _SearchState extends State<Search> {
                       }
                       print("2 $searchedList");
                     });
-                });
+                  });
 
-                searchController.clear();
-              }, icon: Icon(Icons.search))
-            ],
+                  searchController.clear();
+                }, icon: Icon(Icons.search)),
+              )
+
+
           ),
-        ),
+
         Expanded(child: Container(
-            padding: EdgeInsets.fromLTRB(0, 25, 0, 0),
-            width: 350,
+            padding: EdgeInsets.all(10),
             child: ListView.builder(itemCount: searchedList.length, shrinkWrap: true, itemBuilder: (context, index){
               return Card(
                 margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
