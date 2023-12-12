@@ -14,7 +14,7 @@ List<UserList> lists = [];
 int selectedIndex = 0;
 
 List<Media> searchedList = [];
-
+List<String> filters = ["movie", "game", "book", "album"];
 
 
 
@@ -597,7 +597,26 @@ class Search extends StatefulWidget {
 
 class _SearchState extends State<Search> {
   ApiService service = ApiService();
+  String currentFilter = "";
+  List<Media> filteredList = [];
 
+  void filter(String value){
+    if(value!="-1" && searchedList.isNotEmpty){
+      List<Media> temp = List<Media>.from(searchedList.where((element) => element.mediaType.toLowerCase()==value));
+      if(temp.isEmpty){
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No media found for this media type."), duration: Duration(seconds: 1),));
+      }else{
+        currentFilter = value;
+        filteredList = temp;
+      }
+      print("value : ${searchedList}");
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please search something before clicking one of these."), duration: Duration(seconds: 1),));
+    }
+
+  }
+
+  List<Media> returnList() => filteredList.isEmpty ? searchedList : filteredList;
 
   @override
   Widget build(BuildContext context) {
@@ -611,6 +630,7 @@ class _SearchState extends State<Search> {
                 trailing: IconButton(onPressed: () async{
                   String search = searchController.text;
                   searchedList = [];
+                  filteredList = [];
                   service.search(search).then((value) {
 
                     setState(() {
@@ -631,16 +651,87 @@ class _SearchState extends State<Search> {
 
           ),
 
+        Container(
+          padding: EdgeInsets.fromLTRB(0, 10, 0, 20),
+          child: GridView.count(
+            crossAxisCount: 2,
+            mainAxisSpacing: 0,
+            padding: EdgeInsets.all(0),
+            childAspectRatio: 8/1,
+            shrinkWrap: true,
+
+            children: [
+              RadioListTile(value: filters[0], onChanged: (value){
+                setState(() {
+                  if(currentFilter!=value && value!=null){
+                    print(value);
+                    filter(value as String);
+                  }else{
+                    filteredList = [];
+                    currentFilter = "";
+                  }
+
+                });
+              }, groupValue: currentFilter, title: Text("Movies"), toggleable: true,),
+              RadioListTile(
+                value: filters[1], onChanged: (value){
+                  setState(() {
+                    if(currentFilter!=value && value!=null){
+                      print(value);
+                      filter(value as String);
+                    }else{
+                      filteredList = [];
+                      currentFilter = "";
+                    }
+
+                  });
+                }, groupValue: currentFilter, toggleable: true,
+                title: Text("Games"),
+              ),
+              RadioListTile(
+                value: filters[2], onChanged: (String? value){
+                  setState(() {
+                    if(currentFilter!=value && value!=null){
+                      print(value);
+                      filter(value as String);
+                    }else{
+                      filteredList = [];
+                      currentFilter = "";
+                    }
+
+                  });
+                }, groupValue: currentFilter, toggleable: true,
+                title: Text("Books"),
+              ),
+              RadioListTile(
+                value: filters[3],onChanged: (value){
+                  setState(() {
+                    if(currentFilter!=value && value!=null){
+                      print(value);
+                      filter(value as String);
+                    }else{
+                      filteredList = [];
+                      currentFilter = "";
+                    }
+
+                  });
+                }, groupValue: currentFilter, toggleable: true,
+                title: Text("Music"),
+              ),
+            ],
+          ),
+        ),
+
         Expanded(child: Container(
             padding: EdgeInsets.all(10),
-            child: ListView.builder(itemCount: searchedList.length, shrinkWrap: true, itemBuilder: (context, index){
+            child: ListView.builder(itemCount: returnList().length, shrinkWrap: true, itemBuilder: (context, index){
               return Card(
                 margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                child: ListTile(title: Text(searchedList[index].title, style: TextStyle(fontWeight: FontWeight.bold),), subtitle: Column(
+                child: ListTile(title: Text(returnList()[index].title, style: TextStyle(fontWeight: FontWeight.bold),), subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(searchedList[index].year),
-                    Text(searchedList[index].mediaType)
+                    Text(returnList()[index].year),
+                    Text(returnList()[index].mediaType)
                   ],
                 ), onTap: (){
                   showModalBottomSheet(context: context, builder: (BuildContext context){
@@ -650,7 +741,7 @@ class _SearchState extends State<Search> {
                       child: SingleChildScrollView(
                         padding: EdgeInsets.all(30),
                         child: Column(
-                          children: listButtons(searchedList[index], context),
+                          children: listButtons(returnList()[index], context),
                         ),
                       ),
                     );
