@@ -39,7 +39,9 @@ class MyApp extends StatelessWidget {
         'homePage': (context) => HomePage(),
         'loginScreen': (context) => LoginScreen(),
         'registerPage': (context) => RegisterPage(),
-        'listCreate': (context) => ListCreate()
+        'listCreate': (context) => ListCreate(),
+        'searchPage': (context) => Search(),
+        'listPage': (context) => Lists()
       },
       home: LandingPage(),
     );
@@ -473,6 +475,11 @@ class Lists extends StatefulWidget {
 
 class _ListsState extends State<Lists> {
 
+  void deleteList(int index) {
+    setState(() {
+      lists.removeAt(index);
+    });
+  }
 
   List<Widget> generatedLists(){
     List<Widget> widgetList = [];
@@ -485,6 +492,7 @@ class _ListsState extends State<Lists> {
             Navigator.of(context).pushNamed('singleList');
           }, trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){
             //HERE, ADD CODE TO DELETE THE LIST!!!!
+            deleteList(lists.indexOf(element));
           },),
           ),
         ),
@@ -521,6 +529,7 @@ class SingleList extends StatefulWidget {
 }
 
 class _SingleListState extends State<SingleList> {
+
   @override
   List<Widget> loadedList(BuildContext context){
     List<Widget> widgetList = [];
@@ -543,7 +552,12 @@ class _SingleListState extends State<SingleList> {
               trailing: Container(
                 child: Checkbox(onChanged: (index){
                   setState(() {
-                    element.check();
+                    if(lists[selectedIndex].isEditable){
+                      element.check();
+                      checkIfAllChecked();
+                    }else{
+                      showSnackBar("Can't uncheck archived list");
+                    }
                   });
 
                 },value: element.checked,),
@@ -558,7 +572,50 @@ class _SingleListState extends State<SingleList> {
 
     return widgetList;
   }
+  void showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
 
+  void checkIfAllChecked() {
+    bool allChecked = lists[selectedIndex].medias.every((element) => element.checked);
+    if (allChecked) {
+      showCompletionDialog();
+    }
+  }
+  void showCompletionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("List Completed"),
+          content: Text("What would you like to do?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  lists[selectedIndex].isEditable = false;
+                });
+                Navigator.of(context).pop();
+              },
+              child: Text("Archive the List"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Navigate to the search page
+                Navigator.pushReplacementNamed(context, 'homePage');
+              },
+              child: Text("Go to home Page (for now)"),
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
 
