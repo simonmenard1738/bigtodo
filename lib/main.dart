@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'user.dart';
 import 'media.dart';
 import 'userlist.dart';
+import 'db.dart';
 
 TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
@@ -18,12 +19,17 @@ List<String> filters = ["movie", "game", "book", "album"];
 
 
 
+
 void main() {
-  runApp(const MyApp());
+  runApp( MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+   MyApp({super.key});
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +62,17 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
+
+
+  Mydb mydb = new Mydb(); // create an instance for the database (db object)
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    mydb.open(); // initialize the database and start to add students information
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,6 +106,30 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   TextEditingController username = new TextEditingController();
   TextEditingController password = new TextEditingController();
+
+
+  List<Map> ulist = [];
+  Mydb mydb = new Mydb();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    getData();
+    super.initState();
+  }
+
+
+
+  void getData() {
+    Future.delayed(Duration(milliseconds: 500), () async {
+      // use delay min 500ms, because database takes time to reinitialize
+      await mydb.open();
+      ulist = await mydb.db.rawQuery('select * from User');
+      setState(() {});
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +178,24 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(
               height: 30,
             ),
-            ElevatedButton(onPressed: (){
+            ElevatedButton(onPressed: ()async{
+              String user = username.text;
+              String pass = password.text;
+
+
+              bool isValidCredentials = await mydb.checkUserCredentials(user, pass);
+
+              if (isValidCredentials) {
+                // Navigate to the home page
+                Navigator.of(context).pushNamed('homePage');
+              } else {
+                // Show a Snackbar indicating incorrect information
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Incorrect information'),
+                  ),
+                );
+              }
               Navigator.of(context).pushNamed('homePage');
             }, child: Text("Login")),
 
@@ -168,10 +226,32 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
+
+
 class _RegisterPageState extends State<RegisterPage> {
   TextEditingController Reg_username = new TextEditingController();
   TextEditingController Reg_password = new TextEditingController();
   TextEditingController Reg_email = new TextEditingController();
+
+  List<Map> ulist = [];
+  Mydb mydb = new Mydb();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    mydb.open();
+    getData();
+    super.initState();
+  }
+
+  void getData() {
+    Future.delayed(Duration(milliseconds: 500), () async {
+      // use delay min 500ms, because database takes time to reinitialize
+      ulist = await mydb.db.rawQuery('select * from User');
+      setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -237,8 +317,15 @@ class _RegisterPageState extends State<RegisterPage> {
               SizedBox(
                 height: 25,
               ),
-              ElevatedButton(onPressed: (){
+              ElevatedButton(onPressed: () async{
                 currentUser = new User(Reg_username.text, Reg_email.text);
+                String username = Reg_username.text;
+                String email = Reg_email.text;
+                String password = Reg_password.text;
+
+                await mydb.insertUser(username, email, password);
+
+
                 Navigator.of(context).pushNamed('homePage');
               }, child: Text("Register"))
             ]
