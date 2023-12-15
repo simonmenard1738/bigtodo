@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:big_to_do/service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -62,6 +61,7 @@ class MyApp extends StatelessWidget {
         'registerPage': (context) => RegisterPage(),
         'listCreate': (context) => ListCreate(),
         'searchPage': (context) => Search(),
+        'settingPage': (context) => SettingPage(),
         'listPage': (context) => Lists()
       },
       home: SplashPage(),
@@ -471,7 +471,7 @@ class _EditProfileState extends State<EditProfile> {
               children: [
                 Icon(Icons.person, size: 50,),
                 IconButton(onPressed: (){
-                  Navigator.of(context).pushNamed('landingPage');
+                  Navigator.of(context).pushNamed('settingPage');
                 }, icon: Icon(Icons.settings,), iconSize: 50,),
               ],
             ),
@@ -543,6 +543,130 @@ class _EditProfileState extends State<EditProfile> {
         ),
         )
         ));
+  }
+}
+
+class SettingPage extends StatefulWidget {
+  @override
+  _SettingPageState createState() => _SettingPageState();
+}
+
+class _SettingPageState extends State<SettingPage> {
+  String _selectedFontSize = 'Medium';
+  bool _isDarkMode = false;
+  double _textSize = 16.0; // Default text size
+  Color _backgroundColor = Colors.white; // Default background color
+
+  void _updateTextSize() {
+    switch (_selectedFontSize) {
+      case 'Small':
+        setState(() {
+          _textSize = 14.0;
+        });
+        break;
+      case 'Medium':
+        setState(() {
+          _textSize = 16.0;
+        });
+        break;
+      case 'Large':
+        setState(() {
+          _textSize = 18.0;
+        });
+        break;
+    }
+  }
+
+  void _updateBackgroundColor() {
+    setState(() {
+      _backgroundColor = _isDarkMode ? Colors.black : Colors.white;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Settings', style: TextStyle(  fontSize: _textSize)
+      ),
+      ),
+      body: Builder(
+        builder: (BuildContext context) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Font Size',
+                  style: TextStyle(fontSize: _textSize, fontWeight: FontWeight.bold),
+                ),
+                RadioListTile(
+                  title: Text('Small'),
+                  value: 'Small',
+                  groupValue: _selectedFontSize,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedFontSize = value as String;
+                      _updateTextSize();
+                    });
+                  },
+                ),
+                RadioListTile(
+                  title: Text('Medium'),
+                  value: 'Medium',
+                  groupValue: _selectedFontSize,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedFontSize = value as String;
+                      _updateTextSize();
+                    });
+                  },
+                ),
+                RadioListTile(
+                  title: Text('Large'),
+                  value: 'Large',
+                  groupValue: _selectedFontSize,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedFontSize = value as String;
+                      _updateTextSize();
+                    });
+                  },
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Theme',
+                  style: TextStyle(fontSize: _textSize, fontWeight: FontWeight.bold),
+                ),
+                SwitchListTile(
+                  title: Text('Dark Mode',
+                    style: TextStyle(fontSize: _textSize, fontWeight: FontWeight.bold),),
+                  value: _isDarkMode,
+                  onChanged: (value) {
+                    setState(() {
+                      _isDarkMode = value;
+                      _updateBackgroundColor();
+                    });
+                  },
+                ),
+                SizedBox(height: 30),
+
+                Center(
+                  child:ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('landingPage');
+                      },
+                      child: Text('Logout'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+      backgroundColor: _backgroundColor,
+    );
   }
 }
 
