@@ -8,9 +8,15 @@ import 'userlist.dart';
 import 'db.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'Noti.dart';
+import 'CinemaPage.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
+
+double textSize = 40.0;
+bool isDarkMode = false;
+String selectedFontSize = 'Medium';
+Color backgroundColor = Colors.orange;
 
 TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
@@ -62,6 +68,7 @@ class MyApp extends StatelessWidget {
         'listCreate': (context) => ListCreate(),
         'searchPage': (context) => Search(),
         'settingPage': (context) => SettingPage(),
+        'cinemaPage': (context) => CinemaPage(),
         'listPage': (context) => Lists()
       },
       home: SplashPage(),
@@ -92,7 +99,7 @@ class _SplashPageState extends State<SplashPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Big To Do List", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 50),),
+            Text("Big To Do List", style: TextStyle(fontWeight: FontWeight.w700, fontSize: textSize),),
             Image(image: AssetImage('images/logo.png'),),
           ],
         ),
@@ -183,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: Text("Login",
           style: TextStyle(
-            fontSize: 30,
+            fontSize: textSize,
 
           ),),
         toolbarHeight: 100,
@@ -305,7 +312,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Register", style: TextStyle(
-          fontSize: 30,
+          fontSize: textSize,
         ),),
         centerTitle: true,
         toolbarHeight: 100,
@@ -316,7 +323,7 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
 
               Text("Please enter your info", style: TextStyle(
-                  fontSize: 30
+                  fontSize: textSize
               )),
 
               SizedBox(height: 50,),
@@ -469,7 +476,9 @@ class _EditProfileState extends State<EditProfile> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(Icons.person, size: 50,),
+                IconButton(onPressed: (){
+                  Navigator.of(context).pushNamed('cinemaPage');
+                }, icon: Icon(Icons.map,), iconSize: 50,),
                 IconButton(onPressed: (){
                   Navigator.of(context).pushNamed('settingPage');
                 }, icon: Icon(Icons.settings,), iconSize: 50,),
@@ -546,32 +555,29 @@ class _EditProfileState extends State<EditProfile> {
   }
 }
 
+
 class SettingPage extends StatefulWidget {
   @override
   _SettingPageState createState() => _SettingPageState();
 }
 
 class _SettingPageState extends State<SettingPage> {
-  String _selectedFontSize = 'Medium';
-  bool _isDarkMode = false;
-  double _textSize = 16.0; // Default text size
-  Color _backgroundColor = Colors.white; // Default background color
 
   void _updateTextSize() {
-    switch (_selectedFontSize) {
+    switch (selectedFontSize) {
       case 'Small':
         setState(() {
-          _textSize = 14.0;
+          textSize = 30.0;
         });
         break;
       case 'Medium':
         setState(() {
-          _textSize = 16.0;
+          textSize = 40.0;
         });
         break;
       case 'Large':
         setState(() {
-          _textSize = 18.0;
+          textSize = 45.0;
         });
         break;
     }
@@ -579,16 +585,16 @@ class _SettingPageState extends State<SettingPage> {
 
   void _updateBackgroundColor() {
     setState(() {
-      _backgroundColor = _isDarkMode ? Colors.black : Colors.white;
+      backgroundColor = isDarkMode ? Colors.black : Colors.orange;
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings', style: TextStyle(  fontSize: _textSize)
-      ),
+        title: Text('Settings', style: TextStyle(  fontSize: textSize)),
       ),
       body: Builder(
         builder: (BuildContext context) {
@@ -599,15 +605,15 @@ class _SettingPageState extends State<SettingPage> {
               children: [
                 Text(
                   'Font Size',
-                  style: TextStyle(fontSize: _textSize, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: textSize, fontWeight: FontWeight.bold),
                 ),
                 RadioListTile(
                   title: Text('Small'),
                   value: 'Small',
-                  groupValue: _selectedFontSize,
+                  groupValue: selectedFontSize,
                   onChanged: (value) {
                     setState(() {
-                      _selectedFontSize = value as String;
+                      selectedFontSize = value as String;
                       _updateTextSize();
                     });
                   },
@@ -615,10 +621,10 @@ class _SettingPageState extends State<SettingPage> {
                 RadioListTile(
                   title: Text('Medium'),
                   value: 'Medium',
-                  groupValue: _selectedFontSize,
+                  groupValue: selectedFontSize,
                   onChanged: (value) {
                     setState(() {
-                      _selectedFontSize = value as String;
+                      selectedFontSize = value as String;
                       _updateTextSize();
                     });
                   },
@@ -626,10 +632,10 @@ class _SettingPageState extends State<SettingPage> {
                 RadioListTile(
                   title: Text('Large'),
                   value: 'Large',
-                  groupValue: _selectedFontSize,
+                  groupValue: selectedFontSize,
                   onChanged: (value) {
                     setState(() {
-                      _selectedFontSize = value as String;
+                      selectedFontSize = value as String;
                       _updateTextSize();
                     });
                   },
@@ -637,15 +643,15 @@ class _SettingPageState extends State<SettingPage> {
                 SizedBox(height: 20),
                 Text(
                   'Theme',
-                  style: TextStyle(fontSize: _textSize, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: textSize, fontWeight: FontWeight.bold),
                 ),
                 SwitchListTile(
                   title: Text('Dark Mode',
-                    style: TextStyle(fontSize: _textSize, fontWeight: FontWeight.bold),),
-                  value: _isDarkMode,
+                    style: TextStyle(fontSize: textSize, fontWeight: FontWeight.bold),),
+                  value: isDarkMode,
                   onChanged: (value) {
                     setState(() {
-                      _isDarkMode = value;
+                      isDarkMode = value;
                       _updateBackgroundColor();
                     });
                   },
@@ -665,7 +671,7 @@ class _SettingPageState extends State<SettingPage> {
           );
         },
       ),
-      backgroundColor: _backgroundColor,
+      backgroundColor: backgroundColor,
     );
   }
 }
@@ -714,7 +720,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
             Text(selected.title,
                 style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: textSize,
                 )),
 
             SizedBox(height: 35,),
