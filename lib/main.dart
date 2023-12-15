@@ -11,6 +11,11 @@ TextEditingController searchController = TextEditingController();
 
 User currentUser = User.empty();
 
+
+int? user_id;
+
+
+
 List<UserList> lists = [];
 int selectedIndex = 0;
 
@@ -187,6 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               if (userId!=-1) {
                 currentUser = await mydb.getUser(userId);
+                user_id = userId;
                 // Navigate to the home page
                 Navigator.of(context).pushNamed('homePage');
               } else {
@@ -324,7 +330,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 String password = Reg_password.text;
 
                 await mydb.insertUser(username, email, password);
-
+                user_id = mydb.lastInsertedUserId;
 
                 Navigator.of(context).pushNamed('homePage');
               }, child: Text("Register"))
@@ -348,6 +354,58 @@ class _EditProfileState extends State<EditProfile> {
   TextEditingController new_user = new TextEditingController();
   TextEditingController new_email = new TextEditingController();
   String img = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
+
+
+  List<Map> ulist = [];
+  Mydb mydb = new Mydb();
+
+
+  String? new_username;
+  String? new_emailer;
+
+  // @override
+  // void initState() {
+  //   // TODO: implement initState
+  //   mydb.open();
+  //   getData();
+  //   var user;
+  //   user = ulist.map((user));
+  //   new_username = user['username'];
+  //   new_emailer = user['email'];
+  //   super.initState();
+  // }
+
+  void initState() {
+    super.initState();
+    _initializeData();
+  }
+
+  void _initializeData() async {
+    await mydb.open();
+     getData();
+
+    if (ulist.isNotEmpty) {
+      // Assuming ulist is a List<Map<dynamic, dynamic>> and you want the first user
+      var user = ulist.first;
+
+      setState(() {
+        new_username = user['username'];
+        new_emailer = user['email'];
+      });
+    }
+  }
+
+
+  void getData() {
+    Future.delayed(Duration(milliseconds: 500), () async {
+      // use delay min 500ms, because database takes time to reinitialize
+      ulist = await mydb.db.rawQuery('select * from User where user_id =' + user_id.toString());
+      print("CURRENT USER ID:" + user_id.toString());
+
+      setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -390,7 +448,7 @@ class _EditProfileState extends State<EditProfile> {
                   // filled: true,
                   //fillColor: Colors.white,
 
-                    hintText: currentUser.username
+                    hintText: new_username
                     //"New Username"
                 ),
               ),
@@ -405,7 +463,7 @@ class _EditProfileState extends State<EditProfile> {
                   // filled: true,
                   //fillColor: Colors.white,
 
-                    hintText: currentUser.email
+                    hintText: new_emailer
                     //"New Email"
                 ),
               ),
@@ -419,8 +477,8 @@ class _EditProfileState extends State<EditProfile> {
                 if(new_user.text.isNotEmpty && new_email.text.isNotEmpty)
                 currentUser.username = new_user.text;
                 currentUser.email = new_email.text;
-                new_user.text = "";
-                new_email.text = "";
+               mydb.updateUser(new_user.text, new_email.text, user_id);
+               getData();
               });
 
             }, child: Text("Save Changes"))
@@ -562,6 +620,33 @@ class Lists extends StatefulWidget {
 
 class _ListsState extends State<Lists> {
 
+  List<Map> ulists = [];
+  Mydb mydb = new Mydb();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    mydb.open();
+    getData();
+    super.initState();
+  }
+
+  void getData() {
+    Future.delayed(Duration(milliseconds: 500), () async {
+      // use delay min 500ms, because database takes time to reinitialize
+      lists = [];
+      var results = await mydb.db.rawQuery('select * from UserList where user_id =' +user_id.toString());
+      String name = "";
+      for(var row in results){
+       name = row['name'] as String;
+       List<Media> mediaList = [];
+       // need to get medias and add to list
+       lists.add(UserList(name));
+     }
+      setState(() {});
+    });
+  }
+
   void deleteList(int index) {
     setState(() {
       lists.removeAt(index);
@@ -600,6 +685,10 @@ class _ListsState extends State<Lists> {
             children: [
               Column(children: generatedLists()),
               ElevatedButton(onPressed: (){
+
+
+
+
                 Navigator.of(context).pushNamed("listCreate");
               }, child: Text("Add List")),
             ],),
@@ -751,6 +840,24 @@ class _SearchState extends State<Search> {
   ApiService service = ApiService();
   String currentFilter = "";
   List<Media> filteredList = [];
+
+  List<Map> ulists = [];
+  Mydb mydb = new Mydb();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    mydb.open();
+    getData();
+    super.initState();
+  }
+
+  void getData() {
+    Future.delayed(Duration(milliseconds: 500), () async {
+      // use delay min 500ms, because database takes time to reinitialize
+      setState(() {});
+    });
+  }
 
   void filter(String value){
     if(value!="-1" && searchedList.isNotEmpty){
@@ -920,8 +1027,18 @@ class _SearchState extends State<Search> {
     }
     for (var element in lists) {
       globalLists.add(
-          ElevatedButton(onPressed: (){
+          ElevatedButton(onPressed: () async{
             if(element.medias.where((element) => element.title==selected.title).isEmpty){
+              int isChecked = 0;
+              if(selected.checked == true){
+                isChecked = 1;
+              }
+
+              mydb.insertMedia(selected.title, selected.year, selected.mediaType, isChecked);
+              var result = await mydb.db.rawQuery("SELECT * FROM UserList WHERE name = '${element.name}'");
+                int id = result[0]['user_list_id'] as int;
+                int? mediaID = mydb.lastInsertedMediaId;
+                mydb.insertMediaList(id, mediaID);
               setState(() {
                 element.medias.add(selected);
               });
@@ -934,9 +1051,34 @@ class _SearchState extends State<Search> {
   }
 }
 
-class ListCreate extends StatelessWidget {
+class ListCreate extends StatefulWidget {
   ListCreate({super.key});
+
+  @override
+  State<ListCreate> createState() => _ListCreateState();
+}
+
+class _ListCreateState extends State<ListCreate> {
   TextEditingController listController = TextEditingController();
+
+  List<Map> ulist = [];
+  Mydb mydb = new Mydb();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    mydb.open();
+    getData();
+    super.initState();
+  }
+
+  void getData() {
+    Future.delayed(Duration(milliseconds: 500), () async {
+      // use delay min 500ms, because database takes time to reinitialize
+      ulist = await mydb.db.rawQuery('select * from User');
+      setState(() {});
+    });
+  }
 
 
   @override
@@ -946,7 +1088,8 @@ class ListCreate extends StatelessWidget {
         child: ListTile(
             title: TextField(decoration: InputDecoration(hintText: "Name"), controller: listController,),
             trailing: IconButton(onPressed: (){
-              lists.add(UserList(listController.text));
+              mydb.insertUserList(listController.text, user_id);
+              //lists.add(UserList(listController.text));
               Navigator.of(context).pushNamed("homePage");
             }, icon: Icon(Icons.add)),)
         ),

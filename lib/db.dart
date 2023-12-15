@@ -12,14 +12,16 @@ import 'user.dart';
 
 class Mydb {
   late Database db;
+  int? lastInsertedUserId;
+  int? lastInsertedMediaId;
 
   Future open() async {
     var databasePath = await getDatabasesPath();
-    String path = join(databasePath, 'bigTodo6.db');
+    String path = join(databasePath, 'bigTodo7.db');
     print("Database path:" + path);
     db = await openDatabase(
       path,
-      version: 6,  // Increment the version number
+      version: 6, // Increment the version number
       onCreate: (Database db, int version) async {
         await _createDatabase(db, version);
       },
@@ -27,7 +29,7 @@ class Mydb {
   }
 
   static Future<void> _createDatabase(Database db, int version) async {
-    try{
+    try {
       await db.execute('''
         create table if not exists Media(
           media_id integer primary key autoincrement,
@@ -50,7 +52,7 @@ class Mydb {
       await db.execute('''
           create table if not exists UserList(
             user_list_id integer primary key autoincrement,
-            name varchar(255),
+            name varchar(255) unique,
             user_id integer
           )
       ''');
@@ -62,10 +64,9 @@ class Mydb {
             media_id integer
           )
       ''');
-    }catch(e){
+    } catch (e) {
       print(e);
     }
-
   }
 
 
@@ -80,10 +81,9 @@ class Mydb {
 
     if (maps.length > 0) {
       return User(maps.first['username'], maps.first['password']);
-    }else{
+    } else {
       return User.empty();
     }
-
   }
 
   Future<Map<dynamic, dynamic>?> getMedia(int media_id) async {
@@ -105,9 +105,11 @@ class Mydb {
     }
     return null;
   }
+
   Future<Map<dynamic, dynamic>?> getList_Media(int list_media_id) async {
     List<Map> maps =
-    await db.query('List_Media', where: 'list_media_id = ?', whereArgs: [list_media_id]);
+    await db.query(
+        'List_Media', where: 'list_media_id = ?', whereArgs: [list_media_id]);
 
     if (maps.length > 0) {
       return maps.first;
@@ -121,16 +123,17 @@ class Mydb {
   ///
 
 
-  Future<void> insertUser(String username, String email, String password) async {
-  db.rawInsert("insert into User (username, email, password) values (?,?,?);",
+  Future<void> insertUser(String username, String email,
+      String password) async {
+    lastInsertedUserId = await db.rawInsert(
+        "insert into User (username, email, password) values (?,?,?);",
 
-    [
-      username,
-      email,
-      password
-    ]
-  );
-   
+        [
+          username,
+          email,
+          password
+        ]
+    );
   }
 
 
@@ -139,53 +142,95 @@ class Mydb {
 
     List<Map<String, dynamic>> result = await db.query(
       'User',
-      where: 'username = ? and password = ?', // Corrected the use of "where" keyword
+      where: 'username = ? and password = ?',
+      // Corrected the use of "where" keyword
       whereArgs: [username, password],
     );
-    if(result.isNotEmpty){
+    if (result.isNotEmpty) {
       return result[0]['user_id'];
-    }else{
+    } else {
       return -1;
     }
   }
 
 
+  Future<void> insertMedia(String title, String year, String mediaType, int checked) async{
+    lastInsertedMediaId = await db.rawInsert(
+        "insert into Media (title, year, mediaType,checked) values (?, ?, ?,?);",
+        [
+          title,
+          year,
+          mediaType,
+          checked,
+        ]);
+  }
+
+  Future<void> insertUserList(String name, int? user_id) async {
+    db.rawInsert("insert into UserList (name, user_id) values (?,?);",
+
+        [
+          name,
+          user_id,
+
+        ]
+    );
+  }
+
+  Future<void> insertMediaList(int userList, int? media) async {
+    db.rawInsert("insert into List_Media (user_list_id, media_id) values (?,?);",
+
+        [
+          userList,
+          media,
+
+        ]
+    );
+  }
+
+    ///
+    /// Delete Functions
+    ///
+
+    void deleteList(int list_id) {
+      db.rawDelete("DELETE FROM ");
+    }
 
 
-  void insertMedia(String title, String year, String mediaType, int checked){
-  db.rawInsert("insert into Media (title, year, mediaType,checked) values (?, ?, ?,?);",
-      [
-        title,
-        year,
-        mediaType,
-        checked,
-      ]);
+    // Future<bool> checkUserCredentials(String username, String password) async {
+    //   //final Database db = await database;
+    //
+    //   List<Map<String, dynamic>> result = await db.rawQuery("select * from User where 'username' = ? and 'password' = ?",
+    //   [
+    //     username,
+    //     password
+    //   ]);
+    //
+    //   return result.isNotEmpty;
+    // }
+
+    ///
+    ///  Update Functions
+    ///
+
+    Future<void> updateUser(String newUsername, String newEmail,
+        int? userId) async {
+      try {
+        await db.update(
+          'User',
+          {
+            'username': newUsername,
+            'email': newEmail,
+
+          },
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+
+        print('User updated successfully');
+      } catch (e) {
+        print('Error updating user: $e');
+      }
+    }
   }
 
 
-  ///
- /// Delete Functions
- ///
-
-  void deleteList(int list_id){
-  db.rawDelete("DELETE FROM ");
-  }
-
-
-
-  // Future<bool> checkUserCredentials(String username, String password) async {
-  //   //final Database db = await database;
-  //
-  //   List<Map<String, dynamic>> result = await db.rawQuery("select * from User where 'username' = ? and 'password' = ?",
-  //   [
-  //     username,
-  //     password
-  //   ]);
-  //
-  //   return result.isNotEmpty;
-  // }
-
-
-
-
-}
