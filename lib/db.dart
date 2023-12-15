@@ -26,34 +26,45 @@ class Mydb {
   }
 
   static Future<void> _createDatabase(Database db, int version) async {
-    await db.execute('''
-      create table if not exists Media(
-        media_id integer primary key autoincrement,
-        title varchar,
-        year varchar,
-        mediaType varchar,
-        checked int
-      );
+    try{
+      await db.execute('''
+        create table if not exists Media(
+          media_id integer primary key autoincrement,
+          title varchar(100),
+          year varchar(10),
+          mediaType varchar(20),
+          checked integer
+        )
+      ''');
 
-      create table if not exists User(
-        user_id integer primary key autoincrement,
-        username varchar,
-        email varchar,
-        password varchar
-      );
+      await db.execute('''
+            create table if not exists User(
+            user_id integer primary key autoincrement,
+            username varchar(255),
+            email varchar(255),
+            password varchar(255)
+          )
+      ''');
 
-      create table if not exists UserList(
-        user_list_id integer primary key autoincrement,
-        name varchar,
-        user_id integer
-      );
+      await db.execute('''
+          create table if not exists UserList(
+            user_list_id integer primary key autoincrement,
+            name varchar(255),
+            user_id integer
+          )
+      ''');
 
-      create table if not exists List_Media(
-        list_media_id integer primary key autoincrement,
-        user_list_id integer,
-        media_id integer
-      );
-    ''');
+      await db.execute('''
+          create table if not exists List_Media(
+            list_media_id integer primary key autoincrement,
+            user_list_id integer,
+            media_id integer
+          )
+      ''');
+    }catch(e){
+      print(e);
+    }
+
   }
 
 
