@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'EditProfilePage.dart';
 import 'SearchPage.dart';
 import 'main.dart';
+import 'Noti.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -9,6 +10,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+  @override
+  void initState(){
+    super.initState();
+    Noti.initialize(flutterLocalNotificationsPlugin);
+  }
+
+  @override
+  void dispose() {
+    Noti.showBigTextNotification(title: "Big To Do List", body: "Don't Forget to check your List", fln: flutterLocalNotificationsPlugin);
+    super.dispose();
+  }
+
   int currentIndex = 0;
 
   List<Widget> tabs = [

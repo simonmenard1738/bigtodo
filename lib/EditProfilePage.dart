@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'user.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 User currentUser = User('John Doe', 'johndoe@gmail.com');
 
@@ -14,6 +16,18 @@ class _EditProfileState extends State<EditProfile> {
   TextEditingController new_user = new TextEditingController();
   TextEditingController new_email = new TextEditingController();
   String img = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        img = pickedFile.path;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,7 +55,10 @@ class _EditProfileState extends State<EditProfile> {
                   height: 15,
                 ),
 
-                ElevatedButton(onPressed: (){}, child: Text("Change Photo")),
+                ElevatedButton(
+                  onPressed: _pickImage,
+                  child: Text("Change Photo"),
+                ),
 
                 SizedBox(
                   height: 25,

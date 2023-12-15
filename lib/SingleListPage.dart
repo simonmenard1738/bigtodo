@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'RatingPage.dart';
 import 'main.dart';
+import 'package:big_to_do/Noti.dart';
 
 class SingleList extends StatefulWidget {
   const SingleList({super.key});
@@ -37,7 +38,7 @@ class _SingleListState extends State<SingleList> {
                       element.check();
                       checkIfAllChecked();
                     }else{
-                      showSnackBar("Can't uncheck archived list");
+                      Noti.showBigTextNotification(title: "Big To Do List", body: "Can't uncheck archived list", fln: flutterLocalNotificationsPlugin);
                     }
                   });
 

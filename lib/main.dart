@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'package:big_to_do/service.dart';
 import 'package:flutter/material.dart';
 import 'CreateListPage.dart';
 import 'HomePage.dart';
-import 'RatingPage.dart';
 import 'SearchPage.dart';
 import 'SingleListPage.dart';
 import 'user.dart';
@@ -10,6 +10,10 @@ import 'media.dart';
 import 'userlist.dart';
 import 'db.dart';
 import 'EditProfilePage.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
 
 TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
@@ -23,7 +27,7 @@ List<Media> searchedList = [];
 List<String> filters = ["movie", "game", "book", "album"];
 
 
-void main() {
+main() async {
   runApp( MyApp());
 }
 
@@ -40,6 +44,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Helvetica',
       ),
       routes: <String, WidgetBuilder>{
+        'SplashPage': (context) => SplashPage(),
         'landingPage': (context) => LandingPage(),
         'singleList': (context) => SingleList(),
         'homePage': (context) => HomePage(),
@@ -49,10 +54,44 @@ class MyApp extends StatelessWidget {
         'searchPage': (context) => Search(),
         'listPage': (context) => Lists()
       },
-      home: LandingPage(),
+      home: SplashPage(),
     );
   }
 }
+
+
+class SplashPage extends StatefulWidget {
+  @override
+  _SplashPageState createState() => _SplashPageState();
+}
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    Timer(Duration(seconds: 3),
+            ()=>Navigator.pushReplacement(context,
+            MaterialPageRoute(builder:
+                (context) =>LandingPage()
+            )
+        )
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    return  Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("Big To Do List", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 50),),
+            Image(image: AssetImage('images/logo.png'),),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -81,7 +120,6 @@ class _LandingPageState extends State<LandingPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text("Big To Do List", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 50),),
-            //Image(image: AssetImage('images/apple.webp'),),
             Container(
                 child:
                 ElevatedButton(onPressed: (){
@@ -346,14 +384,5 @@ class UserView extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-
-
-
 
 
