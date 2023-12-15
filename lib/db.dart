@@ -36,7 +36,8 @@ class Mydb {
           title varchar(100),
           year varchar(10),
           mediaType varchar(20),
-          checked integer
+          checked integer,
+          poster varchar(500)
         )
       ''');
 
@@ -106,13 +107,13 @@ class Mydb {
     return null;
   }
 
-  Future<Map<dynamic, dynamic>?> getList_Media(int list_media_id) async {
+  Future<List<Map<dynamic, dynamic>>?> getList_Media(int user_list_id) async {
     List<Map> maps =
     await db.query(
-        'List_Media', where: 'list_media_id = ?', whereArgs: [list_media_id]);
+        'List_Media', where: 'user_list_id = ?', whereArgs: [user_list_id]);
 
     if (maps.length > 0) {
-      return maps.first;
+      return maps;
     }
     return null;
   }
@@ -229,6 +230,14 @@ class Mydb {
         print('User updated successfully');
       } catch (e) {
         print('Error updating user: $e');
+      }
+    }
+
+    Future<void> checkMedia(String media_id, int checked) async{
+      try{
+        await db.update('Media', {'checked': checked}, where: 'media_id = ?', whereArgs: [media_id]);
+      }catch(e){
+        print("Error checking media id. ${e}");
       }
     }
   }

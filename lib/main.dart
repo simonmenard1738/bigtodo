@@ -19,6 +19,8 @@ TextEditingController searchController = TextEditingController();
 
 User currentUser = User.empty();
 
+int currentIndex = 0;
+
 
 int? user_id;
 
@@ -214,6 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
               margin: EdgeInsets.fromLTRB(45, 0, 45, 0),
               child: TextField(
                 controller: password,
+                obscureText: true,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: "Password",
@@ -358,6 +361,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     border: OutlineInputBorder(),
                     labelText: "Password",
                   ),
+                  obscureText: true,
                 ),
               ),
               SizedBox(
@@ -501,7 +505,7 @@ class _EditProfileState extends State<EditProfile> {
                   // filled: true,
                   //fillColor: Colors.white,
 
-                    hintText: new_username
+                    hintText: currentUser.username
                     //"New Username"
                 ),
               ),
@@ -516,7 +520,7 @@ class _EditProfileState extends State<EditProfile> {
                   // filled: true,
                   //fillColor: Colors.white,
 
-                    hintText: new_emailer
+                    hintText: currentUser.email
                     //"New Email"
                 ),
               ),
@@ -527,11 +531,12 @@ class _EditProfileState extends State<EditProfile> {
             ),
             ElevatedButton(onPressed: (){
               setState(() {
-                if(new_user.text.isNotEmpty && new_email.text.isNotEmpty)
-                currentUser.username = new_user.text;
-                currentUser.email = new_email.text;
-               mydb.updateUser(new_user.text, new_email.text, user_id);
-               getData();
+                currentUser.username = new_user.text.isNotEmpty ? new_user.text : currentUser.username;
+                currentUser.email = new_email.text.isNotEmpty ? new_email.text : currentUser.email;
+                mydb.updateUser(currentUser.username, currentUser.email, user_id);
+                getData();
+                new_user.text = "";
+                new_email.text = "";
               });
 
             }, child: Text("Save Changes"))
@@ -557,7 +562,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      //backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text("Ratings"),
       ),
@@ -574,7 +579,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
                   maxHeight: 200,
                   maxWidth: 350
               ),
-              child: Image.network(selected.poster),
+              child: selected.poster.isNotEmpty ? Image.network(selected.poster) : Text(""),
             ),
 
             SizedBox(height: 35,),
@@ -625,18 +630,16 @@ class _RatingsScreenState extends State<RatingsScreen> {
 
 class HomePage extends StatefulWidget {
   int? index;
-  HomePage({int? index, super.key}){
-    this.index = index;
-  }
+  HomePage({super.key}){}
 
   @override
-  State<HomePage> createState() => _HomePageState(index??=0);
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
-  int currentIndex;
 
-  _HomePageState(this.currentIndex);
+
+  _HomePageState();
 
   List<Widget> tabs = [
     EditProfile(),
@@ -688,13 +691,27 @@ class _ListsState extends State<Lists> {
     Future.delayed(Duration(milliseconds: 500), () async {
       // use delay min 500ms, because database takes time to reinitialize
       lists = [];
-      var results = await mydb.db.rawQuery('select * from UserList where user_id =' +user_id.toString());
+      var listResults = await mydb.db.rawQuery('select * from UserList where user_id =' +user_id.toString());
       String name = "";
-      for(var row in results){
-       name = row['name'] as String;
+      for(var row in listResults){
+       var mediaResults =  await mydb.getList_Media(row['user_list_id'] as int);
        List<Media> mediaList = [];
+       if(mediaResults!=null){
+        for(var mediaRow in mediaResults){
+          var mediaMap = await mydb.getMedia(mediaRow['media_id']);
+          if(mediaMap!=null)
+            mediaList.add(Media(mediaMap['title'], mediaMap['year'], mediaMap['mediaType'], mediaMap['poster']??"", checked: mediaMap['checked']==1, id: mediaMap['media_id'].toString()));
+
+        }
+       }
+
+
+       name = row['name'] as String;
+
        // need to get medias and add to list
-       lists.add(UserList(name));
+       var list = UserList(name);
+       list.medias = mediaList;
+       lists.add(list);
      }
       setState(() {});
     });
@@ -758,7 +775,16 @@ class SingleList extends StatefulWidget {
 }
 
 class _SingleListState extends State<SingleList> {
+  
+  Mydb mydb = new Mydb();
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    mydb.open();
+    super.initState();
+  }
+  
   @override
   List<Widget> loadedList(BuildContext context){
     List<Widget> widgetList = [];
@@ -783,6 +809,7 @@ class _SingleListState extends State<SingleList> {
                   setState(() {
                     if(lists[selectedIndex].isEditable){
                       element.check();
+                      mydb.checkMedia(element.id, element.checked ? 1 : 0);
                       checkIfAllChecked();
                     }else{
                       Noti.showBigTextNotification(title: "Big To Do List", body: "Can't uncheck archived list", fln: flutterLocalNotificationsPlugin);

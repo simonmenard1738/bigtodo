@@ -39,6 +39,7 @@ List<Media> booksFromJson(String str) {
 
 
 class Media{
+  String id = "";
   String title = "";
   String year = "";
   String mediaType = "";
@@ -49,7 +50,8 @@ class Media{
     checked = !checked;
   }
 
-  Media(this.title, this.year, this.mediaType, this.poster){
+  Media(this.title, this.year, this.mediaType, this.poster,
+      {this.id = '-1', this.checked = false}){
 
   }
 
