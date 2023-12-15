@@ -127,7 +127,6 @@ class _LandingPageState extends State<LandingPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Big To Do List", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 50),),
             //Image(image: AssetImage('images/apple.webp'),),
             Container(
               child:
@@ -698,7 +697,7 @@ class _ListsState extends State<Lists> {
        List<Media> mediaList = [];
        if(mediaResults!=null){
         for(var mediaRow in mediaResults){
-          var mediaMap = await mydb.getMedia(mediaRow['media_id']);
+          Map<dynamic, dynamic>? mediaMap = mediaRow['media_id']==null ? null : await mydb.getMedia(mediaRow['media_id']);
           if(mediaMap!=null)
             mediaList.add(Media(mediaMap['title'], mediaMap['year'], mediaMap['mediaType'], mediaMap['poster']??"", checked: mediaMap['checked']==1, id: mediaMap['media_id'].toString()));
 
@@ -1114,7 +1113,7 @@ class _SearchState extends State<Search> {
                 isChecked = 1;
               }
 
-              mydb.insertMedia(selected.title, selected.year, selected.mediaType, isChecked);
+              mydb.insertMedia(selected.title, selected.year, selected.mediaType, isChecked, selected.poster);
               var result = await mydb.db.rawQuery("SELECT * FROM UserList WHERE name = '${element.name}'");
                 int id = result[0]['user_list_id'] as int;
                 int? mediaID = mydb.lastInsertedMediaId;

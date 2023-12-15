@@ -155,14 +155,15 @@ class Mydb {
   }
 
 
-  Future<void> insertMedia(String title, String year, String mediaType, int checked) async{
+  Future<void> insertMedia(String title, String year, String mediaType, int checked, String poster) async{
     lastInsertedMediaId = await db.rawInsert(
-        "insert into Media (title, year, mediaType,checked) values (?, ?, ?,?);",
+        "insert into Media (title, year, mediaType,checked,poster) values (?, ?, ?, ?, ?);",
         [
           title,
           year,
           mediaType,
           checked,
+          poster
         ]);
   }
 
