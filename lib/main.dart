@@ -1,9 +1,17 @@
+import 'dart:async';
+
 import 'package:big_to_do/service.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'user.dart';
 import 'media.dart';
 import 'userlist.dart';
 import 'db.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:big_to_do/Noti.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
 
 TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
@@ -54,7 +62,39 @@ class MyApp extends StatelessWidget {
         'searchPage': (context) => Search(),
         'listPage': (context) => Lists()
       },
-      home: LandingPage(),
+      home: SplashPage(),
+    );
+  }
+}
+
+class SplashPage extends StatefulWidget {
+  @override
+  _SplashPageState createState() => _SplashPageState();
+}
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    Timer(Duration(seconds: 3),
+            ()=>Navigator.pushReplacement(context,
+            MaterialPageRoute(builder:
+                (context) =>LandingPage()
+            )
+        )
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    return  Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("Big To Do List", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 50),),
+            Image(image: AssetImage('images/logo.png'),),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -355,6 +395,16 @@ class _EditProfileState extends State<EditProfile> {
   TextEditingController new_email = new TextEditingController();
   String img = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        img = pickedFile.path;
+      });
+    }
+  }
 
   List<Map> ulist = [];
   Mydb mydb = new Mydb();
@@ -433,7 +483,10 @@ class _EditProfileState extends State<EditProfile> {
               height: 15,
             ),
 
-            ElevatedButton(onPressed: (){}, child: Text("Change Photo")),
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: Text("Change Photo"),
+            ),
 
             SizedBox(
               height: 25,
@@ -732,7 +785,7 @@ class _SingleListState extends State<SingleList> {
                       element.check();
                       checkIfAllChecked();
                     }else{
-                      showSnackBar("Can't uncheck archived list");
+                      Noti.showBigTextNotification(title: "Big To Do List", body: "Can't uncheck archived list", fln: flutterLocalNotificationsPlugin);
                     }
                   });
 
