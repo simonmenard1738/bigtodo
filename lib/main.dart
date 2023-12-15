@@ -8,7 +8,7 @@ import 'media.dart';
 import 'userlist.dart';
 import 'db.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:big_to_do/Noti.dart';
+import 'Noti.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
@@ -773,6 +773,7 @@ class _SingleListState extends State<SingleList> {
   void initState() {
     // TODO: implement initState
     mydb.open();
+    Noti.initialize(flutterLocalNotificationsPlugin);
     super.initState();
   }
   
