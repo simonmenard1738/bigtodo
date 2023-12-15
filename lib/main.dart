@@ -592,17 +592,17 @@ class _ListsState extends State<Lists> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Column(children: generatedLists()),
-            ElevatedButton(onPressed: (){
-              Navigator.of(context).pushNamed("listCreate");
-            }, child: Text("Add List")),
-          ],),
+      padding: EdgeInsets.fromLTRB(20, 60, 20, 20),
+      child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Column(children: generatedLists()),
+              ElevatedButton(onPressed: (){
+                Navigator.of(context).pushNamed("listCreate");
+              }, child: Text("Add List")),
+            ],),
       )
     );
   }
@@ -707,12 +707,20 @@ class _SingleListState extends State<SingleList> {
   Widget build(BuildContext context) {
 
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-      child: Column(children: loadedList(context) + [
-        ElevatedButton(onPressed: (){
-          Navigator.pop(context);
-        }, child: Text("Return"))
-      ]),
+      padding: EdgeInsets.fromLTRB(20,60,20,20),
+      child: SingleChildScrollView(
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [ Column(children: loadedList(context),),
+              ElevatedButton(onPressed: (){
+                Navigator.pop(context);
+              }, child: Text("Return"))
+            ]
+        ),
+      )
+
+
     );
   }
 }
@@ -801,7 +809,7 @@ class _SearchState extends State<Search> {
             crossAxisCount: 2,
             mainAxisSpacing: 0,
             padding: EdgeInsets.all(0),
-            childAspectRatio: 8/1,
+            childAspectRatio: 4/1,
             shrinkWrap: true,
 
             children: [
@@ -935,19 +943,14 @@ class ListCreate extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(decoration: InputDecoration(hintText: "Name"), controller: listController,),
-            ElevatedButton(onPressed: (){
+        child: ListTile(
+            title: TextField(decoration: InputDecoration(hintText: "Name"), controller: listController,),
+            trailing: IconButton(onPressed: (){
               lists.add(UserList(listController.text));
               Navigator.of(context).pushNamed("homePage");
-            }, child: Text("Add list"))
-          ],
+            }, icon: Icon(Icons.add)),)
         ),
-      )
-    );
+      );
   }
 }
 
