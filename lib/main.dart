@@ -1,14 +1,20 @@
 import 'package:big_to_do/service.dart';
 import 'package:flutter/material.dart';
+import 'CreateListPage.dart';
+import 'HomePage.dart';
+import 'RatingPage.dart';
+import 'SearchPage.dart';
+import 'SingleListPage.dart';
 import 'user.dart';
 import 'media.dart';
 import 'userlist.dart';
+import 'db.dart';
+import 'EditProfilePage.dart';
 
 TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
 TextEditingController searchController = TextEditingController();
 
-User currentUser = User('John Doe', 'johndoe@gmail.com');
 
 List<UserList> lists = [];
 int selectedIndex = 0;
@@ -17,13 +23,13 @@ List<Media> searchedList = [];
 List<String> filters = ["movie", "game", "book", "album"];
 
 
-
 void main() {
-  runApp(const MyApp());
+  runApp( MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +62,17 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
+
+
+  Mydb mydb = new Mydb(); // create an instance for the database (db object)
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    mydb.open(); // initialize the database and start to add students information
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,7 +83,7 @@ class _LandingPageState extends State<LandingPage> {
             Text("Big To Do List", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 50),),
             //Image(image: AssetImage('images/apple.webp'),),
             Container(
-              child:
+                child:
                 ElevatedButton(onPressed: (){
                   Navigator.of(context).pushNamed('loginScreen');
                 }, child: Text("Enter the app"))
@@ -89,6 +106,30 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   TextEditingController username = new TextEditingController();
   TextEditingController password = new TextEditingController();
+
+
+  List<Map> ulist = [];
+  Mydb mydb = new Mydb();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    getData();
+    super.initState();
+  }
+
+
+
+  void getData() {
+    Future.delayed(Duration(milliseconds: 500), () async {
+      // use delay min 500ms, because database takes time to reinitialize
+      await mydb.open();
+      ulist = await mydb.db.rawQuery('select * from User');
+      setState(() {});
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +178,24 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(
               height: 30,
             ),
-            ElevatedButton(onPressed: (){
+            ElevatedButton(onPressed: ()async{
+              String user = username.text;
+              String pass = password.text;
+
+
+              bool isValidCredentials = await mydb.checkUserCredentials(user, pass);
+
+              if (isValidCredentials) {
+                // Navigate to the home page
+                Navigator.of(context).pushNamed('homePage');
+              } else {
+                // Show a Snackbar indicating incorrect information
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Incorrect information'),
+                  ),
+                );
+              }
               Navigator.of(context).pushNamed('homePage');
             }, child: Text("Login")),
 
@@ -168,10 +226,32 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
+
+
 class _RegisterPageState extends State<RegisterPage> {
   TextEditingController Reg_username = new TextEditingController();
   TextEditingController Reg_password = new TextEditingController();
   TextEditingController Reg_email = new TextEditingController();
+
+  List<Map> ulist = [];
+  Mydb mydb = new Mydb();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    mydb.open();
+    getData();
+    super.initState();
+  }
+
+  void getData() {
+    Future.delayed(Duration(milliseconds: 500), () async {
+      // use delay min 500ms, because database takes time to reinitialize
+      ulist = await mydb.db.rawQuery('select * from User');
+      setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -237,8 +317,15 @@ class _RegisterPageState extends State<RegisterPage> {
               SizedBox(
                 height: 25,
               ),
-              ElevatedButton(onPressed: (){
+              ElevatedButton(onPressed: () async{
                 currentUser = new User(Reg_username.text, Reg_email.text);
+                String username = Reg_username.text;
+                String email = Reg_email.text;
+                String password = Reg_password.text;
+
+                await mydb.insertUser(username, email, password);
+
+
                 Navigator.of(context).pushNamed('homePage');
               }, child: Text("Register"))
             ]
@@ -248,390 +335,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
-
-
-class EditProfile extends StatefulWidget {
-  const EditProfile({super.key});
-
-  @override
-  State<EditProfile> createState() => _EditProfileState();
-}
-
-class _EditProfileState extends State<EditProfile> {
-  TextEditingController new_user = new TextEditingController();
-  TextEditingController new_email = new TextEditingController();
-  String img = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-
-        body: SingleChildScrollView(
-        child: Center(child:Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(Icons.person, size: 50,),
-                IconButton(onPressed: (){
-                  Navigator.of(context).pushNamed('landingPage');
-                }, icon: Icon(Icons.settings,), iconSize: 50,),
-              ],
-            ),
-            SizedBox(height: 50,),
-
-            CircleAvatar(
-              radius: 65,
-              backgroundImage: NetworkImage("$img"),
-            ),
-
-            SizedBox(
-              height: 15,
-            ),
-
-            ElevatedButton(onPressed: (){}, child: Text("Change Photo")),
-
-            SizedBox(
-              height: 25,
-            ),
-
-            SizedBox(
-              width: 250,
-              height: 75,
-              child: TextField(
-                controller: new_user,
-                decoration: InputDecoration(
-                  // filled: true,
-                  //fillColor: Colors.white,
-
-                    hintText: currentUser.username
-                    //"New Username"
-                ),
-              ),
-            ),
-
-            SizedBox(
-              width: 250,
-              height: 50,
-              child: TextField(
-                controller: new_email,
-                decoration: InputDecoration(
-                  // filled: true,
-                  //fillColor: Colors.white,
-
-                    hintText: currentUser.email
-                    //"New Email"
-                ),
-              ),
-            ),
-
-            SizedBox(
-              height: 25,
-            ),
-            ElevatedButton(onPressed: (){
-              setState(() {
-                if(new_user.text.isNotEmpty && new_email.text.isNotEmpty)
-                currentUser.username = new_user.text;
-                currentUser.email = new_email.text;
-                new_user.text = "";
-                new_email.text = "";
-              });
-
-            }, child: Text("Save Changes"))
-          ],
-        ),
-        )
-        ));
-  }
-}
-
-
-class RatingsScreen extends StatefulWidget {
-  Media selected;
-  RatingsScreen(this.selected, {super.key});
-
-  @override
-  State<RatingsScreen> createState() => _RatingsScreenState(selected);
-}
-
-class _RatingsScreenState extends State<RatingsScreen> {
-  Media selected;
-  _RatingsScreenState(this.selected);
-
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: Text("Ratings"),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            SizedBox(height: 25),
-            Container(
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.white)
-              ),
-              constraints: BoxConstraints(
-                  maxHeight: 200,
-                  maxWidth: 350
-              ),
-              child: Image.network(selected.poster),
-            ),
-
-            SizedBox(height: 35,),
-
-            Text(selected.title,
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30
-                )),
-
-            SizedBox(height: 35,),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.star, color: Colors.orange, size: 40,),
-                Icon(Icons.star, color: Colors.orange, size: 40,),
-                Icon(Icons.star, color: Colors.orange, size: 40,),
-                Icon(Icons.star, color: Colors.orange, size: 40,),
-                Icon(Icons.star, color: Colors.orange, size: 40,),
-
-              ],
-
-            ),
-
-            SizedBox(height: 15,),
-
-            Text("Taken from PLACEHOLDER reviews", style: TextStyle(
-                color: Colors.white
-            ),),
-
-            SizedBox(height: 25,),
-
-            ElevatedButton(onPressed: (){
-
-            }, child:Text("Add Review"))
-
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-
-
-
-class HomePage extends StatefulWidget {
-  int? index;
-  HomePage({int? index, super.key}){
-    this.index = index;
-  }
-
-  @override
-  State<HomePage> createState() => _HomePageState(index??=0);
-}
-
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
-  int currentIndex;
-
-  _HomePageState(this.currentIndex);
-
-  List<Widget> tabs = [
-    EditProfile(),
-    Search(),
-    Lists()
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index){
-          setState(() {
-            currentIndex = index;
-          });
-        },items: [
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: "User"),
-        BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-        BottomNavigationBarItem(icon: Icon(Icons.list), label: "Lists"),
-      ],
-      ),
-      body: tabs[currentIndex],
-    );
-  }
-}
-
-class Lists extends StatefulWidget {
-  const Lists({super.key});
-
-  @override
-  State<Lists> createState() => _ListsState();
-}
-
-class _ListsState extends State<Lists> {
-
-  void deleteList(int index) {
-    setState(() {
-      lists.removeAt(index);
-    });
-  }
-
-  List<Widget> generatedLists(){
-    List<Widget> widgetList = [];
-    lists.forEach((element) {
-      widgetList.add(
-        Card(
-          margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
-          child: ListTile(title: Text(element.name, style: TextStyle(fontWeight: FontWeight.bold),), subtitle: Text("${element.medias.length} Medias",), onTap: (){
-            selectedIndex = lists.indexOf(element);
-            Navigator.of(context).pushNamed('singleList');
-          }, trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){
-            //HERE, ADD CODE TO DELETE THE LIST!!!!
-            deleteList(lists.indexOf(element));
-          },),
-          ),
-        ),
-      );
-    });
-    return widgetList;
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Column(children: generatedLists()),
-            ElevatedButton(onPressed: (){
-              Navigator.of(context).pushNamed("listCreate");
-            }, child: Text("Add List")),
-          ],),
-      )
-    );
-  }
-}
-
-class SingleList extends StatefulWidget {
-  const SingleList({super.key});
-
-  @override
-  State<SingleList> createState() => _SingleListState();
-}
-
-class _SingleListState extends State<SingleList> {
-
-  @override
-  List<Widget> loadedList(BuildContext context){
-    List<Widget> widgetList = [];
-
-    lists[selectedIndex].medias.forEach( (element) {
-      widgetList.add(
-        Card(
-          margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
-          child: ListTile(onTap: (){
-            Navigator.push(context, MaterialPageRoute(
-                builder: (context)=>RatingsScreen(element)
-            ));
-          },title: Text(element.title, style: TextStyle(fontWeight: FontWeight.bold),), subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(element.year),
-              Text(element.mediaType)
-            ],
-          ),
-              trailing: Container(
-                child: Checkbox(onChanged: (index){
-                  setState(() {
-                    if(lists[selectedIndex].isEditable){
-                      element.check();
-                      checkIfAllChecked();
-                    }else{
-                      showSnackBar("Can't uncheck archived list");
-                    }
-                  });
-
-                },value: element.checked,),
-              )
-
-          ),
-        ),
-
-      );
-    }
-    );
-
-    return widgetList;
-  }
-  void showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
-  }
-
-  void checkIfAllChecked() {
-    bool allChecked = lists[selectedIndex].medias.every((element) => element.checked);
-    if (allChecked) {
-      showCompletionDialog();
-    }
-  }
-  void showCompletionDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("List Completed"),
-          content: Text("What would you like to do?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  lists[selectedIndex].isEditable = false;
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text("Archive the List"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Navigate to the search page
-                Navigator.pushReplacementNamed(context, 'homePage');
-              },
-              child: Text("Go to home Page (for now)"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-  @override
-  Widget build(BuildContext context) {
-
-    return Container(
-      padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-      child: Column(children: loadedList(context) + [
-        ElevatedButton(onPressed: (){
-          Navigator.pop(context);
-        }, child: Text("Return"))
-      ]),
-    );
-  }
-}
-
-
-
 
 class UserView extends StatelessWidget {
   const UserView({super.key});
@@ -644,225 +347,6 @@ class UserView extends StatelessWidget {
   }
 }
 
-class Search extends StatefulWidget {
-  Search({super.key});
-
-
-  @override
-  State<Search> createState() => _SearchState();
-}
-
-class _SearchState extends State<Search> {
-  ApiService service = ApiService();
-  String currentFilter = "";
-  List<Media> filteredList = [];
-
-  void filter(String value){
-    if(value!="-1" && searchedList.isNotEmpty){
-      List<Media> temp = List<Media>.from(searchedList.where((element) => element.mediaType.toLowerCase()==value));
-      if(temp.isEmpty){
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No media found for this media type."), duration: Duration(seconds: 1),));
-      }else{
-        currentFilter = value;
-        filteredList = temp;
-      }
-      print("value : ${searchedList}");
-    }else{
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please search something before clicking one of these."), duration: Duration(seconds: 1),));
-    }
-
-  }
-
-  List<Media> returnList() => filteredList.isEmpty ? searchedList : filteredList;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(height: 50,),
-        Container(
-          child:
-              ListTile(
-                title: TextField(controller: searchController, decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), fillColor: Colors.white, hintText: "Find anything!", filled: true, hintStyle: TextStyle(color: Colors.grey)), style: TextStyle(color: Colors.black)),
-                trailing: IconButton(onPressed: () async{
-                  String search = searchController.text;
-                  searchedList = [];
-                  filteredList = [];
-                  service.search(search).then((value) {
-
-                    setState(() {
-                      print("1 $searchedList");
-                      if(value!=null){
-                        for(Media media in value){
-                          searchedList.add(media);
-                        }
-                      }
-                      print("2 $searchedList");
-                    });
-                  });
-
-                  searchController.clear();
-                }, icon: Icon(Icons.search)),
-              )
-
-
-          ),
-
-        Container(
-          padding: EdgeInsets.fromLTRB(0, 10, 0, 20),
-          child: GridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 0,
-            padding: EdgeInsets.all(0),
-            childAspectRatio: 8/1,
-            shrinkWrap: true,
-
-            children: [
-              RadioListTile(value: filters[0], onChanged: (value){
-                setState(() {
-                  if(currentFilter!=value && value!=null){
-                    print(value);
-                    filter(value as String);
-                  }else{
-                    filteredList = [];
-                    currentFilter = "";
-                  }
-
-                });
-              }, groupValue: currentFilter, title: Text("Movies"), toggleable: true,),
-              RadioListTile(
-                value: filters[1], onChanged: (value){
-                  setState(() {
-                    if(currentFilter!=value && value!=null){
-                      print(value);
-                      filter(value as String);
-                    }else{
-                      filteredList = [];
-                      currentFilter = "";
-                    }
-
-                  });
-                }, groupValue: currentFilter, toggleable: true,
-                title: Text("Games"),
-              ),
-              RadioListTile(
-                value: filters[2], onChanged: (String? value){
-                  setState(() {
-                    if(currentFilter!=value && value!=null){
-                      print(value);
-                      filter(value as String);
-                    }else{
-                      filteredList = [];
-                      currentFilter = "";
-                    }
-
-                  });
-                }, groupValue: currentFilter, toggleable: true,
-                title: Text("Books"),
-              ),
-              RadioListTile(
-                value: filters[3],onChanged: (value){
-                  setState(() {
-                    if(currentFilter!=value && value!=null){
-                      print(value);
-                      filter(value as String);
-                    }else{
-                      filteredList = [];
-                      currentFilter = "";
-                    }
-
-                  });
-                }, groupValue: currentFilter, toggleable: true,
-                title: Text("Music"),
-              ),
-            ],
-          ),
-        ),
-
-        Expanded(child: Container(
-            padding: EdgeInsets.all(10),
-            child: ListView.builder(itemCount: returnList().length, shrinkWrap: true, itemBuilder: (context, index){
-              return Card(
-                margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                child: ListTile(title: Text(returnList()[index].title, style: TextStyle(fontWeight: FontWeight.bold),), subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(returnList()[index].year),
-                    Text(returnList()[index].mediaType)
-                  ],
-                ), onTap: (){
-                  showModalBottomSheet(context: context, builder: (BuildContext context){
-                    return Container(
-                      padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                      height: 500,
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.all(30),
-                        child: Column(
-                          children: listButtons(returnList()[index], context),
-                        ),
-                      ),
-                    );
-
-                  });
-                },
-                ),
-              );})
-
-        ), flex: 1,)
-
-      ],
-    );
-  }
-
-  List<Widget> listButtons(Media selected, BuildContext context){
-    print("In List: $searchedList");
-    List<Widget> globalLists = [];
-    globalLists.add(Text("${selected.title}: ${selected.mediaType}, ${selected.year}", style: TextStyle(fontWeight: FontWeight.bold)));
-    print(selected.poster);
-    if(selected.poster!="N/A"){
-      if(selected.poster.isNotEmpty)
-        globalLists.add(Image.network(selected.poster, width: 200));
-    }
-    for (var element in lists) {
-      globalLists.add(
-          ElevatedButton(onPressed: (){
-            if(element.medias.where((element) => element.title==selected.title).isEmpty){
-              setState(() {
-                element.medias.add(selected);
-              });
-            }
-            Navigator.pop(context);
-          }, child: Text(element.name, style: TextStyle(color: Colors.black54),), style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.orange)),)
-      );
-    }
-    return globalLists;
-  }
-}
-
-class ListCreate extends StatelessWidget {
-  ListCreate({super.key});
-  TextEditingController listController = TextEditingController();
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(decoration: InputDecoration(hintText: "Name"), controller: listController,),
-            ElevatedButton(onPressed: (){
-              lists.add(UserList(listController.text));
-              Navigator.of(context).pushNamed("homePage");
-            }, child: Text("Add list"))
-          ],
-        ),
-      )
-    );
-  }
-}
 
 
 

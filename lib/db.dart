@@ -10,46 +10,51 @@ import 'package:sqflite/sqflite.dart';
 
 
 class Mydb {
-  late Database db; // open the database for storing the data
+  late Database db;
 
   Future open() async {
-    // get a location using getDatabasepath
-
     var databasePath = await getDatabasesPath();
     String path = join(databasePath, 'bigTodo.db');
-    db = await openDatabase(path, version: 1,
-        onCreate: (Database db, int version) async {
-        });
+    print("Database path:" + path);
+
+    db = await openDatabase(
+      path,
+      version: 7,
+      onCreate: (Database db, int version) async {
+        await _createDatabase(db, version);
+      },
+    );
+  }
+
+  static Future<void> _createDatabase(Database db, int version) async {
     await db.execute('''
-         
-      create table if not exists Media(
-      media_id integer primary key autoincrement,
-      title varchar,
-      year varchar,
-      mediaType varchar,
-      checked int
-      );
-      
       create table if not exists User(
-      user_id integer primary key autoincrement,
-      username varchar,
-      email varchar,
-      password varchar
+        user_id integer primary key autoincrement,
+        username varchar,
+        email varchar,
+        password varchar
       );
       
+      create table if not exists Media(
+        media_id integer primary key autoincrement,
+        title varchar,
+        year varchar,
+        mediaType varchar,
+        checked int
+      );
+
       create table if not exists UserList(
-      user_list_id integer primary key autoincrement,
-      name varchar,
-      user_id integer,
+        user_list_id integer primary key autoincrement,
+        name varchar,
+        user_id integer
       );
-      
+
       create table if not exists List_Media(
-      list_media_id integer primary key autoincrement,
-      user_list_id integer,
-      media_id integer
+        list_media_id integer primary key autoincrement,
+        user_list_id integer,
+        media_id integer
       );
-      
-      ''');
+    ''');
   }
 
 
@@ -59,8 +64,7 @@ class Mydb {
 
 
   Future<Map<dynamic, dynamic>?> getUser(int user_id) async {
-    List<Map> maps =
-    await db.query('User', where: 'user_id = ?', whereArgs: [user_id]);
+    List<Map> maps = await db.query('User', where: 'user_id = ?', whereArgs: [user_id]);
 
     if (maps.length > 0) {
       return maps.first;
@@ -103,14 +107,33 @@ class Mydb {
   ///
 
 
-  void insertUser (String username, String email, String password){
-    db.rawInsert( "insert into User (username, email,password) values (?, ?, ?);",
-        [
-          username,
-          email,
-          password
-        ]);
+  Future<void> insertUser(String username, String email, String password) async {
+  db.rawInsert("insert into User (username, email, password) values (?,?,?);",
+
+    [
+      username,
+      email,
+      password
+    ]
+  );
+   
   }
+
+
+  Future<bool> checkUserCredentials(String username, String password) async {
+    //final Database db = await db;
+
+    List<Map<String, dynamic>> result = await db.query(
+      'User',
+      where: 'username = ? and password = ?', // Corrected the use of "where" keyword
+      whereArgs: [username, password],
+    );
+
+    return result.isNotEmpty;
+  }
+
+
+
 
   void insertMedia(String title, String year, String mediaType, int checked){
   db.rawInsert("insert into Media (title, year, mediaType,checked) values (?, ?, ?,?);",
@@ -127,9 +150,25 @@ class Mydb {
  /// Delete Functions
  ///
 
-  void deleteList(int list_id){
-  db.rawDelete("DELETE FROM ");
+  void deleteList(int list_id) {
+    db.rawDelete("DELETE FROM UserList WHERE user_list_id = ?", [list_id]);
   }
+
+
+
+  // Future<bool> checkUserCredentials(String username, String password) async {
+  //   //final Database db = await database;
+  //
+  //   List<Map<String, dynamic>> result = await db.rawQuery("select * from User where 'username' = ? and 'password' = ?",
+  //   [
+  //     username,
+  //     password
+  //   ]);
+  //
+  //   return result.isNotEmpty;
+  // }
+
+
 
 
 }
