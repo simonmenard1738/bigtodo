@@ -37,7 +37,8 @@ class Mydb {
           year varchar(10),
           mediaType varchar(20),
           checked integer,
-          poster varchar(500)
+          poster varchar(500),
+          rating integer
         )
       ''');
 
@@ -239,6 +240,24 @@ class Mydb {
         await db.update('Media', {'checked': checked}, where: 'media_id = ?', whereArgs: [media_id]);
       }catch(e){
         print("Error checking media id. ${e}");
+      }
+    }
+
+    Future<int> getRating(String media_id) async{
+      print("in get rating");
+      List<Map<String, dynamic>> result = await db.query(
+        'Media',
+        where: 'media_id = ?',
+        whereArgs: [media_id],
+      );
+      print("RESULT: ${result.first}");
+      return result.first['rating'] ?? 0;
+    }
+
+    Future<void> setRating(String media_id, int stars) async{
+      print('in set rating');
+      if(stars>=0 && stars<=5){
+        await db.update('Media', {'rating': stars}, where: 'media_id = ?', whereArgs: [media_id]);
       }
     }
   }

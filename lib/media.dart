@@ -73,4 +73,6 @@ class Media{
     'type': mediaType,
     'poster': poster
   };
+
+
 }

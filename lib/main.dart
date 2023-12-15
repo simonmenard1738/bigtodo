@@ -475,13 +475,22 @@ class _EditProfileState extends State<EditProfile> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
               children: [
+<<<<<<< Updated upstream
                 IconButton(onPressed: (){
                   Navigator.of(context).pushNamed('cinemaPage');
                 }, icon: Icon(Icons.map,), iconSize: 50,),
                 IconButton(onPressed: (){
                   Navigator.of(context).pushNamed('settingPage');
                 }, icon: Icon(Icons.settings,), iconSize: 50,),
+=======
+                SizedBox(height: 40,)
+                //Icon(Icons.person, size: 50,),
+                //IconButton(onPressed: (){
+                //  Navigator.of(context).pushNamed('landingPage');
+                //}, icon: Icon(Icons.settings,), iconSize: 50,),
+>>>>>>> Stashed changes
               ],
             ),
             SizedBox(height: 50,),
@@ -688,8 +697,45 @@ class RatingsScreen extends StatefulWidget {
 class _RatingsScreenState extends State<RatingsScreen> {
   Media selected;
   _RatingsScreenState(this.selected);
-
   List<Widget> stars = [];
+
+  Mydb mydb = new Mydb();
+
+  @override
+  void initState(){
+    // TODO: implement initState
+    mydb.open();
+    super.initState();
+  }
+
+
+  Future<List<Widget>> generateStars() async{
+    List<Widget> toReturn = [];
+    Map<dynamic, dynamic>? mediaSelected = await mydb.getMedia(int.parse(selected.id));
+    int stars = mediaSelected!=null ? mediaSelected['rating'] : 0;
+    int count = 1;
+    while(stars != 0){
+      toReturn.add(IconButton(icon: Icon(Icons.star, color: Colors.orange, size: 40,), onPressed: (){
+        setState(() {
+          mydb.setRating(selected.id, count);
+        });
+      },));
+      stars--;
+      count++;
+    }
+
+    while(count<5){
+      toReturn.add(IconButton(icon: Icon(Icons.star, color: Colors.white, size: 40,), onPressed: (){
+        setState(() {
+          mydb.setRating(selected.id, count);
+        });
+      },));
+      count++;
+    }
+
+    return toReturn;
+  }
+
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -725,19 +771,22 @@ class _RatingsScreenState extends State<RatingsScreen> {
 
             SizedBox(height: 35,),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Container(
               // ADD RATINGS.
-              children: [
-                //Icon(Icons.star, color: Colors.orange, size: 40,),
-                //Icon(Icons.star, color: Colors.orange, size: 40,),
-                //Icon(Icons.star, color: Colors.orange, size: 40,),
-                //Icon(Icons.star, color: Colors.orange, size: 40,),
-                //Icon(Icons.star, color: Colors.orange, size: 40,),
+              //child: FutureBuilder(
+              //  future: generateStars(),
+              //  builder: (context, AsyncSnapshot<List<Widget>> snapshot){
+              //    if(snapshot.hasData){
+              //      return Row(
+              //        children: snapshot.data as List<Widget>,
+              //      );
+              //    }else{
+              //      return CircularProgressIndicator();
+              //    }
+              //  },
+              )
 
-              ],
-
-            ),
+            //),
           ],
         ),
       ),
@@ -1064,6 +1113,9 @@ class _SearchState extends State<Search> {
   void filter(String value){
     if(value!="-1" && searchedList.isNotEmpty){
       List<Media> temp = List<Media>.from(searchedList.where((element) => element.mediaType.toLowerCase()==value));
+      if(value=='movie'){
+        temp.addAll(searchedList.where((element) => element.mediaType.toLowerCase()=='series'));
+      }
       if(temp.isEmpty){
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No media found for this media type."), duration: Duration(seconds: 1),));
       }else{
@@ -1133,7 +1185,7 @@ class _SearchState extends State<Search> {
                   }
 
                 });
-              }, groupValue: currentFilter, title: Text("Movies"), toggleable: true,),
+              }, groupValue: currentFilter, title: Text("Movies/Series"), toggleable: true,),
               RadioListTile(
                 value: filters[1], onChanged: (value){
                   setState(() {
@@ -1221,13 +1273,13 @@ class _SearchState extends State<Search> {
   List<Widget> listButtons(Media selected, BuildContext context){
     print("In List: $searchedList");
     List<Widget> globalLists = [];
-    globalLists.add(Text("${selected.title}: ${selected.mediaType}, ${selected.year}", style: TextStyle(fontWeight: FontWeight.bold)));
+    globalLists.add(Text("${selected.title}: ${selected.mediaType}, ${selected.year}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)));
     print(selected.poster);
     if(selected.poster!="N/A"){
       if(selected.poster.isNotEmpty)
-        globalLists.add(Image.network(selected.poster, width: 200));
+        globalLists.add(Container(child:Image.network(selected.poster, width: 200), margin: EdgeInsets.all(40),));
     }
-    for (var element in lists) {
+    for (var element in lists.where((element) => element.isEditable)) {
       globalLists.add(
           ElevatedButton(onPressed: () async{
             if(element.medias.where((element) => element.title==selected.title).isEmpty){
@@ -1293,7 +1345,10 @@ class _ListCreateState extends State<ListCreate> {
               mydb.insertUserList(listController.text, user_id);
               //lists.add(UserList(listController.text));
               Navigator.of(context).pushNamed("homePage");
-            }, icon: Icon(Icons.add)),)
+            }, icon: Icon(Icons.add)),
+            leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: (){
+              Navigator.of(context).pushNamed('homePage');
+            },))
         ),
       );
   }
