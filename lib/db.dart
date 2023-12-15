@@ -17,7 +17,7 @@ class Mydb {
 
   Future open() async {
     var databasePath = await getDatabasesPath();
-    String path = join(databasePath, 'bigTodo8.db');
+    String path = join(databasePath, 'bigTodo7.db');
     print("Database path:" + path);
     db = await openDatabase(
       path,
@@ -53,7 +53,7 @@ class Mydb {
       await db.execute('''
           create table if not exists UserList(
             user_list_id integer primary key autoincrement,
-            name varchar(255),
+            name varchar(255) unique,
             user_id integer
           )
       ''');
@@ -196,16 +196,6 @@ class Mydb {
     void deleteList(int list_id) {
       db.rawDelete("DELETE FROM ");
     }
-
-
-  void deleteUserList(int userlistId) async {
-
-      db.delete(
-      'UserList',
-      where: 'user_list_id = ?',
-      whereArgs: [userlistId],
-    );
-  }
 
 
     // Future<bool> checkUserCredentials(String username, String password) async {

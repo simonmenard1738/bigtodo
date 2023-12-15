@@ -682,12 +682,10 @@ class _ListsState extends State<Lists> {
     Future.delayed(Duration(milliseconds: 500), () async {
       // use delay min 500ms, because database takes time to reinitialize
       lists = [];
-      int userListid = 0;
       var listResults = await mydb.db.rawQuery('select * from UserList where user_id =' +user_id.toString());
       String name = "";
       for(var row in listResults){
        var mediaResults =  await mydb.getList_Media(row['user_list_id'] as int);
-       userListid = row['user_list_id'] as int;
        List<Media> mediaList = [];
        if(mediaResults!=null){
         for(var mediaRow in mediaResults){
@@ -702,7 +700,7 @@ class _ListsState extends State<Lists> {
        name = row['name'] as String;
 
        // need to get medias and add to list
-       var list = UserList(name, userListid);
+       var list = UserList(name);
        list.medias = mediaList;
        lists.add(list);
      }
@@ -727,7 +725,6 @@ class _ListsState extends State<Lists> {
             Navigator.of(context).pushNamed('singleList');
           }, trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){
             //HERE, ADD CODE TO DELETE THE LIST!!!!
-            mydb.deleteUserList(element.id);
             deleteList(lists.indexOf(element));
           },),
           ),
@@ -1110,7 +1107,7 @@ class _SearchState extends State<Search> {
               }
 
               mydb.insertMedia(selected.title, selected.year, selected.mediaType, isChecked, selected.poster);
-              var result = await mydb.db.rawQuery("SELECT * FROM UserList WHERE user_list_id = '${element.id}'");
+              var result = await mydb.db.rawQuery("SELECT * FROM UserList WHERE name = '${element.name}'");
                 int id = result[0]['user_list_id'] as int;
                 int? mediaID = mydb.lastInsertedMediaId;
                 mydb.insertMediaList(id, mediaID);
