@@ -559,14 +559,18 @@ class _RatingsScreenState extends State<RatingsScreen> {
   Media selected;
   _RatingsScreenState(this.selected);
 
+  List<Widget> stars = [];
+
   Widget build(BuildContext context) {
     return Scaffold(
       //backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("Ratings"),
+        title: Text(selected.title),
       ),
       body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 25),
             Container(
@@ -586,36 +590,24 @@ class _RatingsScreenState extends State<RatingsScreen> {
             Text(selected.title,
                 style: TextStyle(
                     color: Colors.white,
-                    fontSize: 30
+                    fontSize: 20,
                 )),
 
             SizedBox(height: 35,),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              // ADD RATINGS.
               children: [
-                Icon(Icons.star, color: Colors.orange, size: 40,),
-                Icon(Icons.star, color: Colors.orange, size: 40,),
-                Icon(Icons.star, color: Colors.orange, size: 40,),
-                Icon(Icons.star, color: Colors.orange, size: 40,),
-                Icon(Icons.star, color: Colors.orange, size: 40,),
+                //Icon(Icons.star, color: Colors.orange, size: 40,),
+                //Icon(Icons.star, color: Colors.orange, size: 40,),
+                //Icon(Icons.star, color: Colors.orange, size: 40,),
+                //Icon(Icons.star, color: Colors.orange, size: 40,),
+                //Icon(Icons.star, color: Colors.orange, size: 40,),
 
               ],
 
             ),
-
-            SizedBox(height: 15,),
-
-            Text("Taken from PLACEHOLDER reviews", style: TextStyle(
-                color: Colors.white
-            ),),
-
-            SizedBox(height: 25,),
-
-            ElevatedButton(onPressed: (){
-
-            }, child:Text("Add Review"))
-
           ],
         ),
       ),
