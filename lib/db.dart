@@ -1,5 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'user.dart';
 
 
 ///
@@ -73,14 +74,16 @@ class Mydb {
   ///
 
 
-  Future<Map<dynamic, dynamic>?> getUser(int user_id) async {
+  Future<User> getUser(int user_id) async {
     List<Map> maps =
-    await db.query('Users', where: 'user_id = ?', whereArgs: [user_id]);
+    await db.query('User', where: 'user_id = ?', whereArgs: [user_id]);
 
     if (maps.length > 0) {
-      return maps.first;
+      return User(maps.first['username'], maps.first['password']);
+    }else{
+      return User.empty();
     }
-    return null;
+
   }
 
   Future<Map<dynamic, dynamic>?> getMedia(int media_id) async {
@@ -131,7 +134,7 @@ class Mydb {
   }
 
 
-  Future<bool> checkUserCredentials(String username, String password) async {
+  Future<int> checkUserCredentials(String username, String password) async {
     //final Database db = await db;
 
     List<Map<String, dynamic>> result = await db.query(
@@ -139,8 +142,11 @@ class Mydb {
       where: 'username = ? and password = ?', // Corrected the use of "where" keyword
       whereArgs: [username, password],
     );
-
-    return result.isNotEmpty;
+    if(result.isNotEmpty){
+      return result[0]['user_id'];
+    }else{
+      return -1;
+    }
   }
 
 

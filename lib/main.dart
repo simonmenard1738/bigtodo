@@ -9,7 +9,7 @@ TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
 TextEditingController searchController = TextEditingController();
 
-User currentUser = User('John Doe', 'johndoe@gmail.com');
+User currentUser = User.empty();
 
 List<UserList> lists = [];
 int selectedIndex = 0;
@@ -183,9 +183,10 @@ class _LoginScreenState extends State<LoginScreen> {
               String pass = password.text;
 
 
-              bool isValidCredentials = await mydb.checkUserCredentials(user, pass);
+              var userId = await mydb.checkUserCredentials(user, pass);
 
-              if (isValidCredentials) {
+              if (userId!=-1) {
+                currentUser = await mydb.getUser(userId);
                 // Navigate to the home page
                 Navigator.of(context).pushNamed('homePage');
               } else {
@@ -196,7 +197,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 );
               }
-              Navigator.of(context).pushNamed('homePage');
             }, child: Text("Login")),
 
             SizedBox(
