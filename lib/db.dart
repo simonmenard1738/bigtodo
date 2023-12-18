@@ -67,7 +67,7 @@ class Mydb {
           )
       ''');
     } catch (e) {
-      print(e);
+      print('Error creating database: $e');
     }
   }
 
@@ -89,6 +89,7 @@ class Mydb {
   }
 
   Future<Map<dynamic, dynamic>?> getMedia(int media_id) async {
+    await open(); // Wait for the database to be initialized
     List<Map> maps =
     await db.query('Media', where: 'media_id = ?', whereArgs: [media_id]);
 
@@ -97,6 +98,7 @@ class Mydb {
     }
     return null;
   }
+
 
   Future<Map<dynamic, dynamic>?> getUserList(int user_id) async {
     List<Map> maps =
@@ -254,12 +256,13 @@ class Mydb {
       return result.first['rating'] ?? 0;
     }
 
-    Future<void> setRating(String media_id, int stars) async{
-      print('in set rating');
+    Future<void> setRating(int media_id, int stars) async{ // must be int
+      print('in set rating: $stars');
       if(stars>=0 && stars<=5){
         await db.update('Media', {'rating': stars}, where: 'media_id = ?', whereArgs: [media_id]);
       }
     }
+
   }
 
 

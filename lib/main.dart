@@ -475,22 +475,18 @@ class _EditProfileState extends State<EditProfile> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
               children: [
-<<<<<<< Updated upstream
                 IconButton(onPressed: (){
                   Navigator.of(context).pushNamed('cinemaPage');
                 }, icon: Icon(Icons.map,), iconSize: 50,),
                 IconButton(onPressed: (){
                   Navigator.of(context).pushNamed('settingPage');
                 }, icon: Icon(Icons.settings,), iconSize: 50,),
-=======
                 SizedBox(height: 40,)
                 //Icon(Icons.person, size: 50,),
                 //IconButton(onPressed: (){
                 //  Navigator.of(context).pushNamed('landingPage');
                 //}, icon: Icon(Icons.settings,), iconSize: 50,),
->>>>>>> Stashed changes
               ],
             ),
             SizedBox(height: 50,),
@@ -709,32 +705,31 @@ class _RatingsScreenState extends State<RatingsScreen> {
   }
 
 
-  Future<List<Widget>> generateStars() async{
-    List<Widget> toReturn = [];
-    Map<dynamic, dynamic>? mediaSelected = await mydb.getMedia(int.parse(selected.id));
-    int stars = mediaSelected!=null ? mediaSelected['rating'] : 0;
-    int count = 1;
-    while(stars != 0){
-      toReturn.add(IconButton(icon: Icon(Icons.star, color: Colors.orange, size: 40,), onPressed: (){
-        setState(() {
-          mydb.setRating(selected.id, count);
-        });
-      },));
-      stars--;
-      count++;
-    }
+  Future<List<Widget>> generateStars() async {
+    int mediaId = int.parse(selected.id);
+    Map<dynamic, dynamic>? mediaSelected = await mydb.getMedia(mediaId);
 
-    while(count<5){
-      toReturn.add(IconButton(icon: Icon(Icons.star, color: Colors.white, size: 40,), onPressed: (){
-        setState(() {
-          mydb.setRating(selected.id, count);
-        });
-      },));
-      count++;
-    }
+    int stars = mediaSelected!['rating'] ?? 0;
 
-    return toReturn;
+    return List.generate( 5, (index) => IconButton( icon: Icon( Icons.star, size: 40,
+          color: index < stars ? Colors.orange : Colors.white), // create orange star depending on rating
+        onPressed: () { _setRating(index + 1);}, //setting the number of stars
+      ),
+    );
+
   }
+
+  void _setRating(int selectedStars) async {
+    int mediaId = int.parse(widget.selected.id);
+    await mydb.setRating(mediaId, selectedStars); // upload the change
+    List<Widget> updatedStars = await generateStars(); //store the result
+    //implement the change
+    setState(() {
+      stars = updatedStars;
+    });
+  }
+
+
 
 
   Widget build(BuildContext context) {
@@ -772,30 +767,29 @@ class _RatingsScreenState extends State<RatingsScreen> {
             SizedBox(height: 35,),
 
             Container(
-              // ADD RATINGS.
-              //child: FutureBuilder(
-              //  future: generateStars(),
-              //  builder: (context, AsyncSnapshot<List<Widget>> snapshot){
-              //    if(snapshot.hasData){
-              //      return Row(
-              //        children: snapshot.data as List<Widget>,
-              //      );
-              //    }else{
-              //      return CircularProgressIndicator();
-              //    }
-              //  },
-              )
+              child: FutureBuilder(
+                future: generateStars(),
+                builder: (context, AsyncSnapshot<List<Widget>> snapshot) {
+                  if (snapshot.hasData) {
+                    return Row(
+                      children: snapshot.data!,
+                    );
+                  } else if (snapshot.hasError) {
+                    print('Error: ${snapshot.error}');
+                    return Text('Error loading stars'); // Display an error message
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                },
+              ),
+            ),
 
-            //),
           ],
         ),
       ),
     );
   }
 }
-
-
-
 
 
 class HomePage extends StatefulWidget {
