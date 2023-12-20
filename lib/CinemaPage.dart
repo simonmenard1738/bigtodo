@@ -1,90 +1,154 @@
-import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class CinemaPage extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+import 'package:http/http.dart' as http;
+
+
+class CinemaPage extends StatelessWidget {
   @override
-  _CinemaPageState createState() => _CinemaPageState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: CinemaScreen(),
+    );
+  }
 }
 
-class _CinemaPageState extends State<CinemaPage> {
-  late Future<List<String>> _cinemas;
+class CinemaScreen extends StatefulWidget {
+  @override
+  _CinemaScreenState createState() => _CinemaScreenState();
+}
+
+class _CinemaScreenState extends State<CinemaScreen> {
+  GoogleMapController? mapController; // Initialize to null
+  Location location = Location();
+  LocationData? currentLocation; // Initialize to null
+
+  Set<Marker> cinemaMarkers = Set();
+
+  void _updateCinemaMarkers(LatLng userLocation) async {
+    List<LatLng> cinemaLocations = await _searchCinemas(userLocation);
+    setState(() {
+      cinemaMarkers = Set.from(cinemaLocations.map((location) {
+        return Marker(
+          markerId: MarkerId(location.toString()),
+          position: location,
+          infoWindow: InfoWindow(title: "Cinema"),
+        );
+      }));
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    _cinemas = _getNearbyCinemas();
+    _getLocation();
   }
 
-  Future<Position> _getCurrentLocation() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw Exception('Location permission denied');
-      }
-    }
-
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
+  void _onMapCreated(GoogleMapController controller) {
+    setState(() {
+      mapController = controller;
+    });
   }
 
-  Future<List<String>> _getNearbyCinemas() async {
+  void _getLocation() async {
     try {
-      final Position position = await _getCurrentLocation();
-      final apiKey = 'AIzaSyCH37RaTHRj4hZRwNAXIhC_yKIFykPhhNo';
-      final radius = 5000; // in meters
+      LocationData locationResult = await location.getLocation();
+      setState(() {
+        currentLocation = locationResult;
+      });
 
-      final response = await http.get(
-        'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
-            '?location=${position.latitude},${position.longitude}'
-            '&radius=$radius'
-            '&type=movie_theater'
-            '&key=$apiKey' as Uri,
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final List<dynamic> results = data['results'];
-        return results.map<String>((result) => result['name'].toString()).toList();
-      } else {
-        throw Exception('Failed to load nearby cinemas');
+      if (mapController != null) {
+        mapController!.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(
+                currentLocation?.latitude ?? 0.0,
+                currentLocation?.longitude ?? 0.0,
+              ),
+              zoom: 15.0,
+            ),
+          ),
+        );
+        _updateCinemaMarkers(LatLng(
+          currentLocation?.latitude ?? 0.0,
+          currentLocation?.longitude ?? 0.0,
+        ));
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      print("Error getting location: $e");
+    }
+  }
+
+  Future<List<LatLng>> _searchCinemas(LatLng userLocation) async {
+    final String apiKey = 'AIzaSyCH37RaTHRj4hZRwNAXIhC_yKIFykPhhNo';
+    final String baseUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
+
+    final String location = '${userLocation.latitude},${userLocation.longitude}';
+    final int radius = 500;
+    final String types = 'movie_theater';
+
+    final String url = '$baseUrl?location=$location&radius=$radius&type=$types&key=$apiKey';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+
+        List<dynamic> results = data['results'];
+        List<LatLng> cinemaLocations = results.map((result) {
+          double lat = result['geometry']['location']['lat'];
+          double lng = result['geometry']['location']['lng'];
+          return LatLng(lat, lng);
+        }).toList();
+
+        return cinemaLocations;
+      } else {
+        print('Failed to fetch nearby places. Status code: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error in API request: $e');
+      return [];
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: _cinemas,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            } else {
-              final List<String> cinemas = snapshot.data as List<String>;
-              return ListView.builder(
-                itemCount: cinemas.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(cinemas[index]),
-                  );
-                },
-              );
-            }
-          } else {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        },
-      );
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Map screen'),
+      ),
+      body: GoogleMap(
+        onMapCreated: _onMapCreated,
+        initialCameraPosition: currentLocation != null
+            ? CameraPosition(
+          target: LatLng(
+            currentLocation!.latitude?? 0.0,
+            currentLocation!.longitude?? 0.0,
+          ),
+          zoom: 15.0,
+        )
+            : CameraPosition(
+          target: LatLng(0.0, 0.0),
+          zoom: 2.0,
+        ),
+        myLocationEnabled: true,
+        mapType: MapType.normal,
+        markers: currentLocation != null
+            ? Set.from([
+          Marker(
+            markerId: MarkerId("userLocation"),
+            position: LatLng(
+              currentLocation!.latitude ?? 0.0,
+              currentLocation!.longitude ?? 0.0,
+            ),
+            infoWindow: InfoWindow(title: "Your Location"),
+          ),
+        ])
+            : Set(),
+      ),
+    );
   }
 }
-

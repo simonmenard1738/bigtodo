@@ -40,7 +40,8 @@ dependencies:
   path_provider: any
   flutter_local_notifications: ^9.0.0
   image_picker: ^0.8.4+4
-  geolocator: ^10.1.0
+  location: ^5.0.0
+  google_maps_flutter: ^2.0.10
 
 dev_dependencies:
   flutter_test:

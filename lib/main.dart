@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:big_to_do/service.dart';
 import 'package:flutter/material.dart';
+import 'package:big_to_do/service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'user.dart';
 import 'media.dart';
@@ -12,11 +12,10 @@ import 'CinemaPage.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
-
+var bright = Brightness.dark;
 double textSize = 40.0;
-bool isDarkMode = false;
+bool isDarkMode = true;
 String selectedFontSize = 'Medium';
-Color backgroundColor = Colors.orange;
 
 TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
@@ -56,7 +55,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(
         colorSchemeSeed: Colors.orange,
-        brightness: Brightness.dark,
+        brightness: bright,
         fontFamily: 'Helvetica',
       ),
       routes: <String, WidgetBuilder>{
@@ -139,7 +138,7 @@ class _LandingPageState extends State<LandingPage> {
               child:
                 ElevatedButton(onPressed: (){
                   Navigator.of(context).pushNamed('loginScreen');
-                }, child: Text("Enter the app"))
+                }, child: Text("Enter the app" , style: TextStyle(fontWeight: FontWeight.w700, fontSize: textSize-20),) )
             )
           ],
         ),
@@ -252,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 );
               }
-            }, child: Text("Login")),
+            }, child: Text("Login", style: TextStyle(fontWeight: FontWeight.w700, fontSize: textSize-23),)),
 
             SizedBox(
               height: 30,
@@ -383,7 +382,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 user_id = mydb.lastInsertedUserId;
 
                 Navigator.of(context).pushNamed('homePage');
-              }, child: Text("Register"))
+              }, child: Text("Register", style: TextStyle(fontSize: textSize),))
             ]
         ),
 
@@ -473,20 +472,17 @@ class _EditProfileState extends State<EditProfile> {
         body: SingleChildScrollView(
         child: Center(child:Column(
           children: [
+            SizedBox(height: 40,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(onPressed: (){
-                  Navigator.of(context).pushNamed('cinemaPage');
-                }, icon: Icon(Icons.map,), iconSize: 50,),
-                IconButton(onPressed: (){
-                  Navigator.of(context).pushNamed('settingPage');
-                }, icon: Icon(Icons.settings,), iconSize: 50,),
-                SizedBox(height: 40,)
-                //Icon(Icons.person, size: 50,),
-                //IconButton(onPressed: (){
-                //  Navigator.of(context).pushNamed('landingPage');
-                //}, icon: Icon(Icons.settings,), iconSize: 50,),
+                IconButton(onPressed: () {Navigator.of(context).pushNamed('cinemaPage');},
+                  icon: Icon(Icons.map), iconSize: 50,
+                ),
+                IconButton(onPressed: () {Navigator.of(context).pushNamed('settingPage');
+                  },
+                  icon: Icon(Icons.settings), iconSize: 50,
+                ),
               ],
             ),
             SizedBox(height: 50,),
@@ -502,7 +498,7 @@ class _EditProfileState extends State<EditProfile> {
 
             ElevatedButton(
               onPressed: _pickImage,
-              child: Text("Change Photo"),
+              child: Text("Change Photo", style: TextStyle(fontSize: textSize-20),),
             ),
 
             SizedBox(
@@ -552,7 +548,7 @@ class _EditProfileState extends State<EditProfile> {
                 new_email.text = "";
               });
 
-            }, child: Text("Save Changes"))
+            }, child: Text("Save Changes", style: TextStyle(fontSize: textSize-20),))
           ],
         ),
         )
@@ -590,7 +586,7 @@ class _SettingPageState extends State<SettingPage> {
 
   void _updateBackgroundColor() {
     setState(() {
-      backgroundColor = isDarkMode ? Colors.black : Colors.orange;
+      bright = isDarkMode ? Brightness.dark : Brightness.light;
     });
   }
 
@@ -601,9 +597,7 @@ class _SettingPageState extends State<SettingPage> {
       appBar: AppBar(
         title: Text('Settings', style: TextStyle(  fontSize: textSize)),
       ),
-      body: Builder(
-        builder: (BuildContext context) {
-          return Padding(
+      body:Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -673,10 +667,7 @@ class _SettingPageState extends State<SettingPage> {
                 ),
               ],
             ),
-          );
-        },
-      ),
-      backgroundColor: backgroundColor,
+          ),
     );
   }
 }
@@ -736,7 +727,7 @@ class _RatingsScreenState extends State<RatingsScreen> {
     return Scaffold(
       //backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(selected.title),
+        title: Text(selected.title, style: TextStyle(fontSize: textSize-20),),
       ),
       body: Center(
         child: Column(
@@ -897,7 +888,7 @@ class _ListsState extends State<Lists> {
             selectedIndex = lists.indexOf(element);
             Navigator.of(context).pushNamed('singleList');
           }, trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){
-            //HERE, ADD CODE TO DELETE THE LIST!!!!
+            //mydb.deleteList(element.user_list_id);
             deleteList(lists.indexOf(element));
           },),
           ),
@@ -921,10 +912,8 @@ class _ListsState extends State<Lists> {
               ElevatedButton(onPressed: (){
 
 
-
-
                 Navigator.of(context).pushNamed("listCreate");
-              }, child: Text("Add List")),
+              }, child: Text("Add List", style: TextStyle(fontSize: textSize-20),)),
             ],),
       )
     );
@@ -1012,8 +1001,8 @@ class _SingleListState extends State<SingleList> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("List Completed"),
-          content: Text("What would you like to do?"),
+          title: Text("List Completed", style: TextStyle(fontSize: textSize-20),),
+          content: Text("What would you like to do?", style: TextStyle(fontSize: textSize-22),),
           actions: [
             TextButton(
               onPressed: () {
@@ -1022,7 +1011,7 @@ class _SingleListState extends State<SingleList> {
                 });
                 Navigator.of(context).pop();
               },
-              child: Text("Archive the List"),
+              child: Text("Archive the List", style: TextStyle(fontSize: textSize-22),),
             ),
             TextButton(
               onPressed: () {
@@ -1030,7 +1019,7 @@ class _SingleListState extends State<SingleList> {
                 // Navigate to the search page
                 Navigator.pushReplacementNamed(context, 'homePage');
               },
-              child: Text("Go to home Page (for now)"),
+              child: Text("Go to home Page", style: TextStyle(fontSize: textSize-22),),
             ),
           ],
         );
@@ -1049,7 +1038,7 @@ class _SingleListState extends State<SingleList> {
             children: [ Column(children: loadedList(context),),
               ElevatedButton(onPressed: (){
                 Navigator.pop(context);
-              }, child: Text("Return"))
+              }, child: Text("Return", style: TextStyle(fontSize: textSize-22),))
             ]
         ),
       )

@@ -196,8 +196,8 @@ class Mydb {
     /// Delete Functions
     ///
 
-    void deleteList(int list_id) {
-      db.rawDelete("DELETE FROM ");
+    void deleteList(int listId) {
+      db.rawDelete("DELETE FROM List_Media WHERE user_list_id = $listId");
     }
 
 
