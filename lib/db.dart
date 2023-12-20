@@ -17,7 +17,7 @@ class Mydb {
 
   Future open() async {
     var databasePath = await getDatabasesPath();
-    String path = join(databasePath, 'bigTodo7.db');
+    String path = join(databasePath, 'bigTodo0.db');
     print("Database path:" + path);
     db = await openDatabase(
       path,
@@ -54,7 +54,7 @@ class Mydb {
       await db.execute('''
           create table if not exists UserList(
             user_list_id integer primary key autoincrement,
-            name varchar(255) unique,
+            name varchar(255),
             user_id integer
           )
       ''');
@@ -196,8 +196,13 @@ class Mydb {
     /// Delete Functions
     ///
 
-    void deleteList(int listId) {
-      db.rawDelete("DELETE FROM List_Media WHERE user_list_id = $listId");
+    void deleteUserList(int userlistId) async {
+
+      db.delete(
+        'UserList',
+        where: 'user_list_id = ?',
+        whereArgs: [userlistId],
+      );
     }
 
 

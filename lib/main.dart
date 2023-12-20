@@ -322,7 +322,7 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
 
               Text("Please enter your info", style: TextStyle(
-                  fontSize: textSize
+                  fontSize: textSize -15
               )),
 
               SizedBox(height: 50,),
@@ -382,7 +382,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 user_id = mydb.lastInsertedUserId;
 
                 Navigator.of(context).pushNamed('homePage');
-              }, child: Text("Register", style: TextStyle(fontSize: textSize),))
+              }, child: Text("Register", style: TextStyle(fontSize: textSize -15),))
             ]
         ),
 
@@ -846,10 +846,12 @@ class _ListsState extends State<Lists> {
     Future.delayed(Duration(milliseconds: 500), () async {
       // use delay min 500ms, because database takes time to reinitialize
       lists = [];
+      int userListid = 0;
       var listResults = await mydb.db.rawQuery('select * from UserList where user_id =' +user_id.toString());
       String name = "";
       for(var row in listResults){
        var mediaResults =  await mydb.getList_Media(row['user_list_id'] as int);
+       userListid = row['user_list_id'] as int;
        List<Media> mediaList = [];
        if(mediaResults!=null){
         for(var mediaRow in mediaResults){
@@ -864,7 +866,7 @@ class _ListsState extends State<Lists> {
        name = row['name'] as String;
 
        // need to get medias and add to list
-       var list = UserList(name);
+       var list = UserList(name, userListid);
        list.medias = mediaList;
        lists.add(list);
      }
@@ -1272,7 +1274,7 @@ class _SearchState extends State<Search> {
               }
 
               mydb.insertMedia(selected.title, selected.year, selected.mediaType, isChecked, selected.poster);
-              var result = await mydb.db.rawQuery("SELECT * FROM UserList WHERE name = '${element.name}'");
+              var result = await mydb.db.rawQuery("SELECT * FROM UserList WHERE user_list_id = '${element.id}'");
                 int id = result[0]['user_list_id'] as int;
                 int? mediaID = mydb.lastInsertedMediaId;
                 mydb.insertMediaList(id, mediaID);
